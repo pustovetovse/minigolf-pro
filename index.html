@@ -591,10 +591,8 @@ function renderGuestList() {
 }
 
 window.addGuestPlayer = () => {
-  console.log('addGuestPlayer called, current length:', guestPlayers.length);
   if (guestPlayers.length >= 5) { toast('Максимум 5 гостей'); return; }
   guestPlayers.push({name:'Гость '+(guestPlayers.length+1), scores:Array(18).fill(0)});
-  console.log('after push:', guestPlayers.length, JSON.stringify(guestPlayers.map(g=>g.name)));
   renderGuestList();
 };
 
@@ -655,7 +653,6 @@ function getNextRound() {
 }
 
 window.startGame = () => {
-  console.log('startGame, guestPlayers:', guestPlayers.length, JSON.stringify(guestPlayers.map(g=>g.name)));
   myScores = Array(18).fill(0);
   // sync guest names from inputs
   document.querySelectorAll('#guest-players-list input').forEach((inp,i) => {
@@ -752,7 +749,7 @@ function renderGame() {
   const dots = document.getElementById('dots');
   dots.innerHTML = Array.from({length:HOLES},(_,i)=>{
     const cls = i===currentHole ? 'current' : myScores[i]>0 ? 'done' : '';
-    return `<div class="dot ${cls}" onclick="goToHole(${i})">${i+1}</div>`;
+    return `<div class="dot ${cls}" onclick="window.goToHole(${i})">${i+1}</div>`;
   }).join('');
 
   // score buttons
@@ -760,7 +757,7 @@ function renderGame() {
   const cur = myScores[currentHole];
   picker.innerHTML = Array.from({length:MAX_SCORE},(_,v)=>{
     const val = v+1;
-    return `<button class="score-btn ${cur===val?'active':''}" onclick="setMyScore(${val})">${val}</button>`;
+    return `<button class="score-btn ${cur===val?'active':''}" onclick="window.setMyScore(${val})">${val}</button>`;
   }).join('');
 
   // my total
@@ -769,14 +766,13 @@ function renderGame() {
 
   // guest player cards
   const guestContainer = document.getElementById('guest-cards');
-  console.log('guest-cards element:', guestContainer, 'guestPlayers:', guestPlayers.length);
   if (guestContainer) {
     guestContainer.innerHTML = guestPlayers.map((g, gi) => {
       const gCur = g.scores[currentHole];
       const gTotal = g.scores.reduce((a,s)=>a+toRecorded(s),0);
       const btns = Array.from({length:MAX_SCORE},(_,v)=>{
         const val = v+1;
-        return `<button class="score-btn ${gCur===val?'active':''}" onclick="setGuestScore(${gi},${val})">${val}</button>`;
+        return `<button class="score-btn ${gCur===val?'active':''}" onclick="window.setGuestScore(${gi},${val})">${val}</button>`;
       }).join('');
       return `<div class="my-score-card" style="border-color:var(--border2);margin-top:8px">
         <div class="my-score-label" style="color:var(--text2)">${g.name} — счёт на лунке</div>
@@ -815,6 +811,13 @@ async function renderOthers() {
     }).join('');
   } catch(e) {}
 }
+
+window.setGuestScore = (gi, val) => {
+  if (!guestPlayers[gi]) return;
+  guestPlayers[gi].scores[currentHole] = val;
+  renderGame();
+  autosave();
+};
 
 window.setMyScore = (val) => {
   myScores[currentHole] = val;
