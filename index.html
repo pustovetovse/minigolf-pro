@@ -14,7 +14,1460 @@ const KNOWN_USERS = {
   // "Олька": "UID_СЮДА"
 };
 
-// ─── ПОЛУЧЕНИЕ ДАННЫХ ИЗ ПРИЛОЖЕНИЯ ───────────
+// ─── ПОЛУЧЕНИЕ ДАННЫХ ИЗ ПРИЛОЖЕНИЯ ───────────<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>⛳ МиниГольф</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiMxNmEzNGEiLz4KICA8cmVjdCB4PSIxMyIgeT0iNyIgd2lkdGg9IjIiIGhlaWdodD0iMTciIHJ4PSIxIiBmaWxsPSIjZmZmIi8+CiAgPHBvbHlnb24gcG9pbnRzPSIxNSw3IDIzLDExIDE1LDE1IiBmaWxsPSIjZmZmIi8+CiAgPGVsbGlwc2UgY3g9IjE2IiBjeT0iMjUiIHJ4PSI1IiByeT0iMiIgZmlsbD0iIzBmN2EzNSIvPgo8L3N2Zz4=" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f0a;--bg2:#111a11;--bg3:#182018;--bg4:#1e2a1e;
+  --text:#f0f7f0;--text2:#8fa88f;--text3:#4a5f4a;
+  --green:#22c55e;--green2:#16a34a;--green3:#15803d;
+  --green-bg:rgba(34,197,94,0.1);--green-glow:rgba(34,197,94,0.3);
+  --gold:#f59e0b;--gold-bg:rgba(245,158,11,0.1);
+  --red:#ef4444;--red-bg:rgba(239,68,68,0.1);
+  --border:rgba(34,197,94,0.15);--border2:rgba(34,197,94,0.25);
+  --radius:16px;--radius-sm:10px;
+}
+[data-theme="light"]{
+  --bg:#f0f7f0;--bg2:#e4f0e4;--bg3:#d4e8d4;--bg4:#c4dfc4;
+  --text:#0a1a0a;--text2:#2d5a2d;--text3:#6a8f6a;
+  --border:rgba(22,163,74,0.2);--border2:rgba(22,163,74,0.35);
+  --green-bg:rgba(22,163,74,0.08);
+}
+html{transition:background 0.3s}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:56px}
+.nav-logo{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700;color:var(--green);letter-spacing:-0.5px}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text2)}
+.nav-btn:hover{background:var(--bg3)}
+.nav-tabs{display:flex;gap:1px;background:var(--bg2);border-radius:var(--radius-sm);padding:2px;max-width:calc(100vw - 120px);overflow:hidden}
+.nav-tab{padding:5px 8px;border-radius:8px;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s}
+.nav-tab.active{background:var(--green);color:#fff}
+.avatar{width:32px;height:32px;border-radius:50%;border:2px solid var(--green);object-fit:cover;cursor:pointer}
+.avatar-placeholder{width:32px;height:32px;border-radius:50%;border:2px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
+
+/* SCREENS */
+.screen{display:none;padding:72px 16px 32px;max-width:480px;margin:0 auto;min-height:100vh}
+.screen.active{display:block}
+
+/* AUTH */
+.auth-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center}
+.auth-icon{font-size:64px;margin-bottom:16px;filter:drop-shadow(0 0 20px var(--green-glow))}
+.auth-title{font-family:'Unbounded',sans-serif;font-size:28px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.2}
+.auth-sub{font-size:14px;color:var(--text2);margin-bottom:40px;line-height:1.6;max-width:280px}
+.google-btn{display:flex;align-items:center;gap:12px;padding:14px 24px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-size:15px;font-weight:500;cursor:pointer;width:100%;max-width:320px;font-family:'Inter',sans-serif;transition:all 0.2s}
+.google-btn:hover{background:var(--bg3);border-color:var(--green)}
+.google-btn svg{flex-shrink:0}
+.guest-btn{margin-top:12px;background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;padding:8px}
+.guest-btn:hover{color:var(--text2)}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em}
+
+/* PROFILE */
+.profile-header{text-align:center;padding:24px 0 16px}
+.profile-avatar{width:72px;height:72px;border-radius:50%;border:3px solid var(--green);object-fit:cover;margin:0 auto 12px}
+.profile-avatar-placeholder{width:72px;height:72px;border-radius:50%;border:3px solid var(--green);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px}
+.profile-name{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px}
+.rank-badge{display:inline-flex;align-items:center;gap:6px;background:var(--green-bg);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:500;color:var(--green);margin-bottom:16px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat-card{background:var(--bg3);border-radius:var(--radius-sm);padding:12px;text-align:center}
+.stat-val{font-family:'Unbounded',sans-serif;font-size:22px;font-weight:700;color:var(--green)}
+.stat-label{font-size:11px;color:var(--text2);margin-top:2px}
+.badges-wrap{display:flex;flex-wrap:wrap;gap:8px}
+.badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-bg);border:1px solid rgba(245,158,11,0.3);border-radius:20px;padding:5px 10px;font-size:12px;font-weight:500;color:var(--gold)}
+.badge.locked{opacity:0.3;filter:grayscale(1)}
+
+/* RATING */
+.rating-tabs{display:flex;gap:4px;background:var(--bg2);border-radius:var(--radius-sm);padding:3px;margin-bottom:16px}
+.rating-tab{flex:1;padding:7px;border-radius:8px;border:none;background:transparent;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif}
+.rating-tab.active{background:var(--green);color:#fff}
+.rating-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.rating-pos{font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700;color:var(--text3);min-width:24px}
+.rating-pos.gold{color:#f59e0b}
+.rating-pos.silver{color:#94a3b8}
+.rating-pos.bronze{color:#cd7f32}
+.rating-avatar{width:36px;height:36px;border-radius:50%;border:1px solid var(--border2);object-fit:cover;flex-shrink:0}
+.rating-avatar-placeholder{width:36px;height:36px;border-radius:50%;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.rating-info{flex:1}
+.rating-name{font-size:14px;font-weight:600}
+.rating-rank{font-size:11px;color:var(--text2)}
+.rating-score{font-family:'Unbounded',sans-serif;font-size:16px;font-weight:700;color:var(--green)}
+.rating-score-label{font-size:10px;color:var(--text3);text-align:right}
+
+/* GAME */
+.hole-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.hole-title{font-family:'Unbounded',sans-serif;font-size:20px;font-weight:700}
+.hole-sub{font-size:12px;color:var(--text2)}
+.nav-btn2{width:40px;height:40px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text)}
+.nav-btn2:disabled{opacity:0.3}
+.dots{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:16px}
+.dot{width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:all 0.15s}
+.dot.done{background:var(--green3);border-color:var(--green);color:#fff}
+.dot.current{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 0 8px var(--green-glow)}
+.my-score-card{background:var(--bg2);border:1px solid var(--green);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:0 0 20px rgba(34,197,94,0.08)}
+.my-score-label{font-size:12px;color:var(--green);font-weight:500;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em}
+.score-picker{display:flex;gap:6px;justify-content:center}
+.score-btn{flex:1;max-width:52px;height:52px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg3);font-size:18px;font-weight:700;cursor:pointer;color:var(--text);font-family:'Unbounded',sans-serif;transition:all 0.15s}
+.score-btn.active{background:var(--green);border-color:var(--green);color:#fff;box-shadow:0 0 12px var(--green-glow)}
+.score-btn:hover:not(.active){border-color:var(--green);color:var(--green)}
+.score-total{text-align:center;margin-top:10px;font-size:13px;color:var(--text2)}
+.score-total span{color:var(--green);font-weight:600}
+.others-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.others-title{font-size:12px;color:var(--text2);margin-bottom:10px;font-weight:500}
+.other-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)}
+.other-row:last-child{border-bottom:none}
+.other-name{font-size:13px;font-weight:500}
+.other-score{font-size:13px;color:var(--text2)}
+.other-score.done{color:var(--green);font-weight:600}
+.nav-row{display:flex;gap:8px;margin-top:16px}
+.nav-row .btn{flex:1;margin-top:0}
+.btn{display:block;width:100%;padding:14px;border-radius:var(--radius);border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s}
+.btn:active{transform:scale(0.98)}
+.btn-primary{background:var(--green);color:#fff}
+.btn-primary:hover{background:var(--green2)}
+.btn-secondary{background:var(--bg2);color:var(--text);border:1px solid var(--border2)}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border);font-size:14px}
+
+/* RESULTS */
+.podium-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.podium-pos{font-family:'Unbounded',sans-serif;font-size:16px;font-weight:700;min-width:28px}
+.podium-info{flex:1}
+.podium-name{font-size:15px;font-weight:600}
+.podium-detail{font-size:12px;color:var(--text2);margin-top:2px}
+.podium-score{font-family:'Unbounded',sans-serif;font-size:20px;font-weight:700;color:var(--green)}
+.winner-crown{font-size:20px}
+.holes-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.holes-table th{padding:5px 3px;text-align:center;color:var(--text3);font-weight:500;border-bottom:1px solid var(--border)}
+.holes-table th:first-child{text-align:left}
+.holes-table td{padding:4px 3px;text-align:center;border-bottom:1px solid var(--border);color:var(--text2)}
+.holes-table td:first-child{text-align:left;font-weight:500;color:var(--text)}
+.holes-table .total{font-weight:700;color:var(--green)}
+
+/* TOURNAMENT */
+.tournament-code{font-family:'Unbounded',sans-serif;font-size:48px;font-weight:700;color:var(--green);letter-spacing:8px;text-align:center;padding:20px 0}
+.code-input{display:flex;gap:8px;margin-bottom:16px}
+.code-input input{flex:1;padding:14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);font-size:24px;font-family:'Unbounded',sans-serif;text-align:center;letter-spacing:4px;outline:none}
+.code-input input:focus{border-color:var(--green)}
+.t-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;cursor:pointer}
+.t-list-item:hover{border-color:var(--green)}
+.t-name{font-size:14px;font-weight:600}
+.t-meta{font-size:12px;color:var(--text2);margin-top:2px}
+.t-code{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:700;color:var(--green)}
+.participants-list{margin-top:12px}
+.participant-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.participant-avatar{width:32px;height:32px;border-radius:50%;border:1px solid var(--border2);object-fit:cover}
+.participant-avatar-placeholder{width:32px;height:32px;border-radius:50%;border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px}
+.participant-name{font-size:13px;font-weight:500;flex:1}
+.participant-status{font-size:11px;color:var(--text3)}
+.participant-status.ready{color:var(--green)}
+
+/* SETUP */
+.section-title{font-family:'Unbounded',sans-serif;font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text)}
+.input-row{margin-bottom:12px}
+.input-label{font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500;display:block}
+input[type=text]{width:100%;padding:12px 14px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);font-size:15px;outline:none;font-family:'Inter',sans-serif;transition:border 0.15s}
+input[type=text]:focus{border-color:var(--green)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;border:1px solid var(--border)}
+.toggle-label{font-size:15px;font-weight:500}
+.toggle-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.toggle{position:relative;width:46px;height:26px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{position:absolute;inset:0;background:var(--bg4);border-radius:13px;cursor:pointer;transition:background 0.2s;border:1px solid var(--border2)}
+.toggle input:checked+.toggle-track{background:var(--green);border-color:var(--green)}
+.toggle-track:before{content:'';position:absolute;width:20px;height:20px;left:2px;top:2px;background:#fff;border-radius:50%;transition:transform 0.2s}
+.toggle input:checked+.toggle-track:before{transform:translateX(20px)}
+
+/* MISC */
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-text{font-size:14px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg4);color:var(--text);border:1px solid var(--border2);padding:10px 20px;border-radius:24px;font-size:14px;font-weight:500;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1}
+.loading{text-align:center;padding:40px;color:var(--text2);font-size:14px}
+.page-title{font-family:'Unbounded',sans-serif;font-size:20px;font-weight:700;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--text2);margin-bottom:20px}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.sheet-status{font-size:13px;margin-top:8px;padding:8px 12px;border-radius:var(--radius-sm);display:none}
+.sheet-status.ok{background:var(--green-bg);color:var(--green);display:block;border:1px solid var(--border2)}
+.sheet-status.err{background:var(--red-bg);color:var(--red);display:block}
+/* HOLES TABLE */
+.holes-analysis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px}
+.holes-col{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 8px}
+.holes-col-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;text-align:center}
+.holes-col-title.green{color:var(--green)}
+.holes-col-title.blue{color:#60a5fa}
+.holes-col-title.red{color:var(--red)}
+.hole-item{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border)}
+.hole-item:last-child{border-bottom:none}
+.hole-num{font-size:11px;color:var(--text2)}
+.hole-val{font-size:12px;font-weight:600}
+.hole-val.green{color:var(--green)}
+.hole-val.blue{color:#60a5fa}
+.hole-val.red{color:var(--red)}
+/* SHARE */
+.share-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif}
+.share-btn:hover{border-color:var(--green);color:var(--green)}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="main-nav" style="display:none">
+  <div class="nav-logo" onclick="showTab('game')" style="cursor:pointer">⛳ МиниГольф</div>
+  <div class="nav-right">
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showTab('game')">Игра</button>
+      <button class="nav-tab" onclick="showTab('rating')">Рейтинг</button>
+      <button class="nav-tab" onclick="showTab('holes')">Лунки</button>
+      <button class="nav-tab" onclick="showTab('tournament')">Турнир</button>
+    </div>
+    <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀️</button>
+    <div id="nav-avatar-wrap" onclick="showTab('profile')"></div>
+  </div>
+</nav>
+
+<!-- AUTH -->
+<div id="auth-screen" class="auth-wrap">
+  <div class="auth-icon">⛳</div>
+  <div class="auth-title">МиниГольф</div>
+  <div class="auth-sub">Счётчик ударов, рейтинги, бейджи и турниры для тебя и друзей</div>
+  <button class="google-btn" onclick="signInGoogle()">
+    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Войти через Google
+  </button>
+  <button class="guest-btn" onclick="continueAsGuest()">Продолжить без входа →</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="screen">
+  <div id="game-setup">
+    <div class="page-title">Новая игра</div>
+    <div class="page-sub" id="game-greeting">Привет! Готов к игре?</div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-label">Сохранить итог публично</div>
+        <div class="toggle-sub">Результаты запишутся в общую таблицу</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="save-toggle" checked><span class="toggle-track"></span></label>
+    </div>
+    <button class="btn btn-primary" onclick="startGame()" style="margin-top:8px">Начать игру →</button>
+  </div>
+
+  <div id="game-play" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button onclick="confirmExitGame()" style="background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:4px 8px">✕ Выйти из игры</button>
+    </div>
+    <div class="hole-header">
+      <button class="nav-btn2" id="prev-btn" onclick="prevHole()">←</button>
+      <div style="text-align:center">
+        <div class="hole-title" id="hole-label">Лунка 1</div>
+        <div class="hole-sub" id="hole-sub">из 18</div>
+      </div>
+      <button class="nav-btn2" id="fwd-btn" onclick="nextHole()">→</button>
+    </div>
+    <div class="dots" id="dots"></div>
+    <div class="my-score-card">
+      <div class="my-score-label" id="my-score-label">Мой счёт</div>
+      <div class="score-picker" id="score-picker"></div>
+      <div class="score-total">Итого: <span id="my-total">—</span></div>
+    </div>
+    <div class="others-card" id="others-card" style="display:none">
+      <div class="others-title">Другие игроки</div>
+      <div id="others-list"></div>
+    </div>
+    <div class="nav-row">
+      <button class="btn btn-secondary" onclick="prevHole()">← Назад</button>
+      <button class="btn btn-primary" id="next-btn" onclick="nextHole()">Далее →</button>
+    </div>
+  </div>
+
+  <div id="game-results" style="display:none">
+    <div class="page-title">Итоги партии</div>
+    <div class="page-sub" id="result-date"></div>
+    <div class="card">
+      <div class="card-title">Результаты</div>
+      <div id="podium"></div>
+    </div>
+    <div class="card" style="overflow-x:auto">
+      <div class="card-title">По лункам</div>
+      <div id="holes-table-wrap"></div>
+    </div>
+    <div id="save-block" style="display:none;margin-bottom:12px">
+      <button class="btn btn-secondary" onclick="saveToSheets()" style="font-size:14px">📊 Сохранить в Google Sheets</button>
+      <div class="sheet-status" id="sheet-status"></div>
+    </div>
+    <button class="btn btn-outline" onclick="newGame()" style="margin-top:4px">↺ Новая игра</button>
+  </div>
+</div>
+
+<!-- PROFILE SCREEN -->
+<div id="profile-screen" class="screen">
+  <div id="profile-content">
+    <div class="loading">Загрузка...</div>
+  </div>
+</div>
+
+<!-- RATING SCREEN -->
+<div id="rating-screen" class="screen">
+  <div class="page-title">Рейтинг</div>
+  <div class="page-sub">Лучшие игроки</div>
+  <div class="rating-tabs">
+    <button class="rating-tab active" onclick="switchRating('alltime')">Всё время</button>
+    <button class="rating-tab" onclick="switchRating('month')">Месяц</button>
+    <button class="rating-tab" onclick="switchRating('best_hole')">Лучший на лунке</button>
+  </div>
+  <div id="rating-list"><div class="loading">Загрузка...</div></div>
+</div>
+
+<!-- HOLES SCREEN -->
+<div id="holes-screen" class="screen">
+  <div class="page-title">Лунки</div>
+  <div class="page-sub">Анализ сложности поля</div>
+  <div class="rating-tabs" style="margin-bottom:16px">
+    <button class="rating-tab active" onclick="switchHolesView('heatmap')">Карта</button>
+    <button class="rating-tab" onclick="switchHolesView('table')">Таблица</button>
+  </div>
+  <div id="holes-heatmap-view"><div class="loading">Загрузка...</div></div>
+  <div id="holes-table-view" style="display:none"><div class="loading">Загрузка...</div></div>
+</div>
+
+<!-- TOURNAMENT SCREEN -->
+<div id="tournament-screen" class="screen">
+  <div id="t-main">
+    <div class="page-title">Турниры</div>
+    <div class="page-sub">Соревнуйся с друзьями</div>
+    <button class="btn btn-primary" onclick="showCreateTournament()" style="margin-bottom:8px">+ Создать турнир</button>
+    <button class="btn btn-secondary" onclick="showJoinTournament()" style="margin-bottom:20px">Войти по коду</button>
+    <div class="card-title">Активные турниры</div>
+    <div id="t-list"><div class="loading">Загрузка...</div></div>
+  </div>
+
+  <div id="t-create" style="display:none">
+    <div class="page-title">Новый турнир</div>
+    <div class="input-row">
+      <label class="input-label">Название</label>
+      <input type="text" id="t-name-input" placeholder="Например: Воскресный турнир">
+    </div>
+    <button class="btn btn-primary" onclick="createTournament()" style="margin-bottom:8px">Создать</button>
+    <button class="btn btn-outline" onclick="showTMain()">Отмена</button>
+  </div>
+
+  <div id="t-join" style="display:none">
+    <div class="page-title">Войти в турнир</div>
+    <div class="page-sub">Введи 4-значный код</div>
+    <div class="code-input">
+      <input type="text" id="t-code-input" maxlength="4" placeholder="0000" inputmode="numeric">
+    </div>
+    <button class="btn btn-primary" onclick="joinTournament()" style="margin-bottom:8px">Войти</button>
+    <button class="btn btn-outline" onclick="showTMain()">Отмена</button>
+  </div>
+
+  <div id="t-detail" style="display:none">
+    <div class="page-title" id="t-detail-name"></div>
+    <div class="page-sub" id="t-detail-meta"></div>
+    <div class="tournament-code" id="t-detail-code"></div>
+    <div class="card">
+      <div class="card-title">Участники</div>
+      <div class="participants-list" id="t-participants"></div>
+    </div>
+    <div id="t-results-wrap" style="display:none">
+      <div class="card">
+        <div class="card-title">Итоги турнира</div>
+        <div id="t-results"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="t-start-btn" onclick="startTournamentGame()" style="margin-bottom:8px;display:none">Начать игру в турнире</button>
+    <button class="btn btn-outline" onclick="showTMain()" style="margin-top:4px">← Назад</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, addDoc, updateDoc, arrayUnion, onSnapshot, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBsNOGmjp6BRzysvGU4gKS9-6CbqYYMS80",
+  authDomain: "minigolf1.firebaseapp.com",
+  projectId: "minigolf1",
+  storageBucket: "minigolf1.firebasestorage.app",
+  messagingSenderId: "532414899327",
+  appId: "1:532414899327:web:9d664018fcae5882698b4a",
+  measurementId: "G-SEZ5P231Z2"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+// ─── STATE ───────────────────────────────────────────
+let currentUser = null;
+let userProfile = null;
+let currentHole = 0;
+let myScores = Array(18).fill(0);
+let savePublic = true;
+let roundNumber = 1;
+let activeTournamentId = null;
+let currentTournament = null;
+let ratingMode = 'alltime';
+let isDark = true;
+const HOLES = 18;
+const MAX_SCORE = 6;
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyVD6ZOU1hlxqeM7o8bDbnwWpWrssSBZA3rW-iQsE4--5fdcf50wr3nPiRHCgq3RNAe/exec';
+
+// ─── RANKS ───────────────────────────────────────────
+const RANKS = [
+  {name:'👑 Легенда',     max:32},
+  {name:'🌟 Элита',       max:36},
+  {name:'🔥 Мастер',      max:40},
+  {name:'🏅 Бывалый',     max:44},
+  {name:'🔵 Крепкий',     max:48},
+  {name:'💪 Твёрдый',     max:53},
+  {name:'🎯 Игрок',       max:58},
+  {name:'⛳ Любитель',    max:65},
+  {name:'🏌️ Начинающий', max:72},
+  {name:'🌱 Новичок',     max:Infinity},
+];
+
+function getRank(avg) {
+  return RANKS.find(r => avg < r.max) || RANKS[RANKS.length-1];
+}
+
+// ─── BADGES ──────────────────────────────────────────
+const BADGE_DEFS = [
+  {id:'hole_in_one',   emoji:'🎯', name:'Хол-ин-ван',      desc:'Забил с 1 удара'},
+  {id:'sniper',        emoji:'⚡', name:'Снайпер',          desc:'3+ хол-ин-вана за партию'},
+  {id:'ice',           emoji:'🧊', name:'Лёд',              desc:'Ни одного счёта 7 в партии'},
+  {id:'sharp',         emoji:'🎯', name:'Меткий',           desc:'Вся партия не более 4 ударов'},
+  {id:'perfect',       emoji:'💎', name:'Идеальная партия', desc:'Вся партия не более 3 ударов'},
+  {id:'regular',       emoji:'🔁', name:'Постоянный',       desc:'10 партий сыграно'},
+  {id:'week_champ',    emoji:'🏆', name:'Чемпион недели',   desc:'Лучший результат за неделю'},
+  {id:'month_champ',   emoji:'📅', name:'Чемпион месяца',   desc:'Лучший результат за месяц'},
+  {id:'improving',     emoji:'📈', name:'На подъёме',       desc:'3 партии подряд с улучшением'},
+  {id:'record',        emoji:'👑', name:'Рекордсмен',       desc:'Лучший результат за всю историю'},
+];
+
+function toRecorded(s) { return s === 6 ? 7 : s; }
+
+function checkBadges(scores, allGames) {
+  const earned = [];
+  const recorded = scores.map(toRecorded);
+  const total = recorded.reduce((a,b)=>a+b,0);
+  const holeInOnes = scores.filter(s=>s===1).length;
+
+  if (holeInOnes >= 1) earned.push('hole_in_one');
+  if (holeInOnes >= 3) earned.push('sniper');
+  if (!recorded.includes(7)) earned.push('ice');
+  if (recorded.every(s=>s<=4)) earned.push('sharp');
+  if (recorded.every(s=>s<=3)) earned.push('perfect');
+  if (allGames.length >= 10) earned.push('regular');
+
+  // improving: last 3 games improving
+  if (allGames.length >= 3) {
+    const last3 = allGames.slice(-3).map(g=>g.total);
+    if (last3[0] > last3[1] && last3[1] > last3[2]) earned.push('improving');
+  }
+  return earned;
+}
+
+// ─── AUTH ─────────────────────────────────────────────
+window.signInGoogle = async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) { toast('Ошибка входа'); }
+};
+
+window.continueAsGuest = () => {
+  currentUser = null;
+  guestPlayers = [];
+  showApp();
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    await loadOrCreateProfile(user);
+    showApp();
+  }
+});
+
+async function loadOrCreateProfile(user) {
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    userProfile = {
+      uid: user.uid,
+      name: user.displayName,
+      photo: user.photoURL,
+      photoURL: user.photoURL,
+      games: [],
+      badges: [],
+      createdAt: Date.now()
+    };
+    await setDoc(ref, userProfile);
+  } else {
+    userProfile = snap.data();
+    // Update photo on every login in case it changed
+    if (user.photoURL) {
+      setDoc(doc(db,'users',user.uid), {photo: user.photoURL, photoURL: user.photoURL}, {merge:true}).catch(e=>console.log('photo update:', e));
+    }
+  }
+  renderNavAvatar();
+}
+
+function renderNavAvatar() {
+  const wrap = document.getElementById('nav-avatar-wrap');
+  if (!currentUser) {
+    wrap.innerHTML = `<div class="avatar-placeholder" title="Гость">👤</div>`;
+    return;
+  }
+  if (currentUser.photoURL) {
+    wrap.innerHTML = `<img src="${currentUser.photoURL}" class="avatar" alt="">`;
+  } else {
+    wrap.innerHTML = `<div class="avatar-placeholder">${currentUser.displayName?.[0]||'?'}</div>`;
+  }
+}
+
+
+function showResumeBanner() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d.myScores || !d.myScores.some(s=>s>0)) return;
+    const ago = Math.round((Date.now()-d.savedAt)/60000);
+    const agoText = ago<1?'только что':ago<60?`${ago} мин назад`:`${Math.round(ago/60)} ч назад`;
+    const banner = document.getElementById('resume-banner');
+    if (banner) {
+      document.getElementById('resume-info').textContent =
+        `Лунка ${d.currentHole+1} из 18 · ${agoText}`;
+      banner.style.display = 'block';
+    }
+  } catch(e){}
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-nav').style.display = 'flex';
+  showTab('game');
+  renderGuestList();
+  if (currentUser) {
+    const greeting = document.getElementById('game-greeting');
+    greeting.textContent = `Привет, ${currentUser.displayName?.split(' ')[0] || 'игрок'}! Готов?`;
+  }
+}
+
+// ─── TABS ─────────────────────────────────────────────
+window.showTab = (tab) => {
+  ['game','profile','rating','holes','tournament'].forEach(t => {
+    document.getElementById(t+'-screen').classList.remove('active');
+  });
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(tab+'-screen').classList.add('active');
+  const tabs = ['game','rating','holes','tournament'];
+  const idx = tabs.indexOf(tab);
+  if (idx >= 0) document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+
+  if (tab === 'profile') renderProfile();
+  if (tab === 'rating') loadRating();
+  if (tab === 'holes') loadHolesScreen();
+  if (tab === 'tournament') loadTournaments();
+  if (tab === 'game') showResumeBanner();
+};
+
+// ─── THEME ────────────────────────────────────────────
+window.toggleTheme = () => {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'light');
+  document.getElementById('theme-btn').textContent = isDark ? '☀️' : '🌙';
+};
+
+// ─── GAME ─────────────────────────────────────────────
+function getTodayKey() {
+  const d = new Date();
+  return `golf_round_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+}
+function getNextRound() {
+  try {
+    const k = getTodayKey();
+    const n = parseInt(localStorage.getItem(k)||'0')+1;
+    localStorage.setItem(k, n);
+    return n;
+  } catch(e) { return 1; }
+}
+
+window.startGame = () => {
+  myScores = Array(18).fill(0);
+  currentHole = 0;
+  savePublic = document.getElementById('save-toggle').checked;
+  roundNumber = getNextRound();
+  activeTournamentId = null;
+  document.getElementById('game-setup').style.display = 'none';
+  document.getElementById('game-play').style.display = 'block';
+  document.getElementById('game-results').style.display = 'none';
+  renderGame();
+  autosave();
+};
+
+
+window.confirmExitGame = () => {
+  if (confirm('Выйти из текущей игры? Прогресс сохранится и можно будет продолжить.')) {
+    autosave();
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('game-results').style.display = 'none';
+    document.getElementById('game-setup').style.display = 'block';
+    renderGuestList();
+    showResumeBanner();
+  }
+};
+
+window.startTournamentGame = () => {
+  if (!currentTournament) return;
+  activeTournamentId = currentTournament.id;
+  myScores = Array(18).fill(0);
+  currentHole = 0;
+  roundNumber = getNextRound();
+  document.getElementById('game-setup').style.display = 'none';
+  document.getElementById('game-play').style.display = 'block';
+  document.getElementById('game-results').style.display = 'none';
+  showTab('game');
+  renderGuestList();
+  renderGame();
+  autosave();
+};
+
+function renderGame() {
+  document.getElementById('hole-label').textContent = `Лунка ${currentHole+1}`;
+  document.getElementById('hole-sub').textContent = `из ${HOLES}`;
+  document.getElementById('prev-btn').disabled = currentHole === 0;
+  const isLast = currentHole === HOLES-1;
+  document.getElementById('next-btn').textContent = isLast ? 'Итоги →' : 'Далее →';
+  document.getElementById('fwd-btn').textContent = isLast ? '⚑' : '→';
+
+  // name label
+  const name = currentUser ? currentUser.displayName?.split(' ')[0] || 'Я' : 'Гость';
+  document.getElementById('my-score-label').textContent = `${name} — счёт на лунке`;
+
+  // dots
+  const dots = document.getElementById('dots');
+  dots.innerHTML = Array.from({length:HOLES},(_,i)=>{
+    const cls = i===currentHole ? 'current' : myScores[i]>0 ? 'done' : '';
+    return `<div class="dot ${cls}" onclick="goToHole(${i})">${i+1}</div>`;
+  }).join('');
+
+  // score buttons
+  const picker = document.getElementById('score-picker');
+  const cur = myScores[currentHole];
+  picker.innerHTML = Array.from({length:MAX_SCORE},(_,v)=>{
+    const val = v+1;
+    return `<button class="score-btn ${cur===val?'active':''}" onclick="setMyScore(${val})">${val}</button>`;
+  }).join('');
+
+  // my total
+  const total = myScores.reduce((a,s)=>a+toRecorded(s),0);
+  document.getElementById('my-total').textContent = total || '—';
+
+  // others in tournament
+  renderOthers();
+}
+
+async function renderOthers() {
+  if (!activeTournamentId) { document.getElementById('others-card').style.display='none'; return; }
+  try {
+    const tRef = doc(db,'tournaments',activeTournamentId);
+    const tSnap = await getDoc(tRef);
+    if (!tSnap.exists()) return;
+    const t = tSnap.data();
+    const scores = t.scores || {};
+    const myUid = currentUser?.uid;
+    const others = Object.entries(scores).filter(([uid])=>uid!==myUid);
+    if (others.length === 0) { document.getElementById('others-card').style.display='none'; return; }
+    document.getElementById('others-card').style.display = 'block';
+    const list = document.getElementById('others-list');
+    list.innerHTML = others.map(([uid, sc])=>{
+      const holeScore = sc[currentHole] || 0;
+      const total = sc.reduce((a,s)=>a+toRecorded(s||0),0);
+      const name = t.participantNames?.[uid] || uid.slice(0,6);
+      const done = holeScore > 0;
+      return `<div class="other-row">
+        <div class="other-name">${name}</div>
+        <div class="other-score ${done?'done':''}">${done ? `${holeScore} (${total})` : '...'}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {}
+}
+
+window.setMyScore = (val) => {
+  myScores[currentHole] = val;
+  renderGame();
+  autosave();
+  // save to tournament
+  if (activeTournamentId && currentUser) {
+    const uid = currentUser.uid;
+    const update = {};
+    update[`scores.${uid}`] = myScores;
+    updateDoc(doc(db,'tournaments',activeTournamentId), update).catch(()=>{});
+  }
+};
+
+window.goToHole = (i) => { currentHole=i; renderGame(); autosave(); };
+window.prevHole = () => { if(currentHole>0){currentHole--;renderGame();autosave();} };
+window.nextHole = () => {
+  if(currentHole===HOLES-1){showResults();return;}
+  currentHole++; renderGame(); autosave();
+};
+
+async function showResults() {
+  clearAutosave();
+  document.getElementById('game-play').style.display='none';
+  document.getElementById('game-results').style.display='block';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})+' · '+now.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+` · Партия ${roundNumber}`;
+  document.getElementById('result-date').textContent = dateStr;
+
+  const recorded = myScores.map(toRecorded);
+  const total = recorded.reduce((a,b)=>a+b,0);
+  const name = currentUser?.displayName?.split(' ')[0] || 'Гость';
+
+  // podium (solo)
+  // Build all players podium
+  const allPlayers = [{name, total, isMe:true}];
+  guestPlayers.forEach(g => {
+    const gRec = g.scores.map(toRecorded);
+    const gTotal = gRec.reduce((a,b)=>a+b,0);
+    allPlayers.push({name:g.name, total:gTotal, isMe:false});
+  });
+  allPlayers.sort((a,b)=>a.total-b.total);
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('podium').innerHTML = allPlayers.map((p,i) => `
+    <div class="podium-row">
+      <div class="podium-pos">${medals[i]||i+1}</div>
+      <div class="podium-info"><div class="podium-name">${p.name}${p.isMe?' <span style="font-size:11px;color:var(--green)">(ты)</span>':' <span style="font-size:11px;color:var(--text3)">👤</span>'}</div></div>
+      <div class="podium-score">${p.total}</div>
+    </div>`).join('');
+
+  // holes table
+  let html = `<table class="holes-table"><thead><tr><th>Игрок</th>`;
+  for(let h=1;h<=HOLES;h++) html+=`<th>${h}</th>`;
+  html+=`<th>∑</th></tr></thead><tbody><tr><td>${name}</td>`;
+  recorded.forEach(s=>{html+=`<td>${s||'—'}</td>`;});
+  html+=`<td class="total">${total}</td></tr></tbody></table>`;
+  document.getElementById('holes-table-wrap').innerHTML = html;
+
+  document.getElementById('save-block').style.display = savePublic ? 'block' : 'none';
+  document.getElementById('sheet-status').className = 'sheet-status';
+
+  // save to firebase
+  if (currentUser) {
+    await saveGameToFirebase(recorded, total, now);
+  }
+
+  // tournament finish
+  if (activeTournamentId && currentUser) {
+    await updateDoc(doc(db,'tournaments',activeTournamentId),{
+      [`finished.${currentUser.uid}`]: true,
+      [`totals.${currentUser.uid}`]: total
+    });
+  }
+}
+
+async function saveGameToFirebase(recorded, total, date) {
+  try {
+    const uid = currentUser.uid;
+    const gameData = {
+      uid, total, holes: recorded,
+      date: date.toISOString(),
+      round: roundNumber,
+      tournamentId: activeTournamentId || null
+    };
+    // add to games collection
+    await addDoc(collection(db,'games'), gameData);
+
+    // update user profile stats
+    const userRef = doc(db,'users',uid);
+    const snap = await getDoc(userRef);
+    const profile = snap.data() || {};
+    const games = profile.games || [];
+    games.push({total, holes: recorded, date: date.toISOString()});
+
+    // calc avg of last 5
+    const last5 = games.slice(-5).map(g=>g.total);
+    const avg = last5.reduce((a,b)=>a+b,0)/last5.length;
+    const rank = getRank(avg);
+
+    // check badges
+    const newBadges = checkBadges(myScores, games);
+    const allBadges = [...new Set([...(profile.badges||[]), ...newBadges])];
+
+    // best score
+    const best = Math.min(...games.map(g=>g.total));
+
+    // calc holeAvgs
+    const holeAvgs = Array(18).fill(0).map((_,i)=>{
+      const allGamesWithHoles = games.filter(g=>g.holes&&g.holes[i]>0);
+      if (allGamesWithHoles.length===0) return 0;
+      return allGamesWithHoles.reduce((a,g)=>a+(g.holes[i]||0),0)/allGamesWithHoles.length;
+    });
+
+    await setDoc(userRef, {
+      ...profile,
+      games, avg: Math.round(avg*10)/10,
+      rank: rank.name, badges: allBadges, best,
+      lastGame: date.toISOString(),
+      holeAvgs
+    }, {merge:true});
+
+    userProfile = {...profile, games, avg, rank:rank.name, badges:allBadges, best, holeAvgs};
+
+    // show earned badges
+    if (newBadges.length > 0) {
+      const names = newBadges.map(id=>BADGE_DEFS.find(b=>b.id===id)?.name).filter(Boolean);
+      setTimeout(()=>toast(`🏅 Новый бейдж: ${names.join(', ')}`), 1000);
+    }
+  } catch(e) { console.error(e); }
+}
+
+window.saveToSheets = async () => {
+  const status = document.getElementById('sheet-status');
+  status.style.display='block';
+  status.className='sheet-status';
+  status.textContent='Отправляю...';
+  const now = new Date().toLocaleString('ru-RU');
+  const recorded = myScores.map(toRecorded);
+  const total = recorded.reduce((a,b)=>a+b,0);
+  const name = currentUser?.displayName || 'Гость';
+  const rows = [{date:now, round:roundNumber, player:name, total, holes:recorded}];
+  // add guest rows
+  guestPlayers.forEach(g => {
+    const gRec = g.scores.map(toRecorded);
+    const gTotal = gRec.reduce((a,b)=>a+b,0);
+    if (gTotal > 0) rows.push({date:now, round:roundNumber, player:g.name, total:gTotal, holes:gRec});
+  });
+  try {
+    await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows})});
+    status.className='sheet-status ok';
+    status.textContent='✓ Сохранено в Google Sheets';
+    toast('Сохранено!');
+  } catch(e) {
+    status.className='sheet-status err';
+    status.textContent='✗ Ошибка. Проверь подключение.';
+  }
+};
+
+window.newGame = () => {
+  document.getElementById('game-results').style.display='none';
+  document.getElementById('game-setup').style.display='block';
+  activeTournamentId = null;
+};
+
+// ─── AUTOSAVE ─────────────────────────────────────────
+const SAVE_KEY = 'golf_autosave_v2';
+function autosave() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      myScores, currentHole, roundNumber, savePublic, activeTournamentId, savedAt: Date.now()
+    }));
+  } catch(e){}
+}
+function clearAutosave() { try{localStorage.removeItem(SAVE_KEY);}catch(e){} }
+
+function checkResume() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d.myScores || !d.myScores.some(s=>s>0)) { clearAutosave(); return; }
+    const ago = Math.round((Date.now()-d.savedAt)/60000);
+    const agoText = ago<1?'только что':ago<60?`${ago} мин назад`:`${Math.round(ago/60)} ч назад`;
+    if (confirm(`Есть незавершённая игра (${agoText}, лунка ${d.currentHole+1}). Продолжить?`)) {
+      myScores = d.myScores;
+      currentHole = d.currentHole;
+      roundNumber = d.roundNumber||1;
+      savePublic = d.savePublic!==false;
+      activeTournamentId = d.activeTournamentId||null;
+      document.getElementById('game-setup').style.display='none';
+      document.getElementById('game-play').style.display='block';
+      document.getElementById('game-results').style.display='none';
+      renderGame();
+    } else {
+      clearAutosave();
+    }
+  } catch(e){}
+}
+
+
+function renderHolesAnalysis(holeAvgs) {
+  if (!holeAvgs || holeAvgs.length < 18) return '';
+  const indexed = holeAvgs.map((avg,i)=>({hole:i+1, avg})).filter(x=>x.avg>0);
+  if (indexed.length === 0) return '';
+
+  const sorted = [...indexed].sort((a,b)=>a.avg-b.avg);
+  const byStability = [...indexed].sort((a,b)=>{
+    // stability = closeness to 3 (optimal)
+    return Math.abs(a.avg-3) - Math.abs(b.avg-3);
+  });
+
+  const best3 = sorted.slice(0,3);
+  const worst3 = sorted.slice(-3).reverse();
+  const stable3 = byStability.slice(0,3);
+
+  const itemHtml = (items, cls) => items.map(x=>
+    `<div class="hole-item">
+      <span class="hole-num">Лунка ${x.hole}</span>
+      <span class="hole-val ${cls}">${x.avg.toFixed(1)}</span>
+    </div>`
+  ).join('');
+
+  return `<div class="card">
+    <div class="card-title">Анализ лунок</div>
+    <div class="holes-analysis">
+      <div class="holes-col">
+        <div class="holes-col-title green">🟢 Лучшие</div>
+        ${itemHtml(best3, 'green')}
+      </div>
+      <div class="holes-col">
+        <div class="holes-col-title blue">🔵 Стабильные</div>
+        ${itemHtml(stable3, 'blue')}
+      </div>
+      <div class="holes-col">
+        <div class="holes-col-title red">🔴 Сложные</div>
+        ${itemHtml(worst3, 'red')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── PROFILE ──────────────────────────────────────────
+window.renderProfile = async () => {
+  const wrap = document.getElementById('profile-content');
+  if (!currentUser) {
+    wrap.innerHTML = `<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Войди в аккаунт чтобы видеть профиль</div><button class="btn btn-primary" style="margin-top:16px" onclick="signInGoogle()">Войти через Google</button></div>`;
+    return;
+  }
+  wrap.innerHTML='<div class="loading">Загрузка...</div>';
+  try {
+    const snap = await getDoc(doc(db,'users',currentUser.uid));
+    if (snap.exists()) userProfile = snap.data();
+  } catch(e){}
+  if (!userProfile) { wrap.innerHTML='<div class="loading">Нет данных</div>'; return; }
+
+  const games = userProfile.games||[];
+  const avg = userProfile.avg||0;
+  const rank = userProfile.rank||getRank(999).name;
+  const best = userProfile.best||'—';
+  const badges = userProfile.badges||[];
+  const photo = currentUser.photoURL;
+
+  const avatarHtml = photo
+    ? `<img src="${photo}" class="profile-avatar" alt="">`
+    : `<div class="profile-avatar-placeholder">👤</div>`;
+
+  const badgesHtml = BADGE_DEFS.map(b=>{
+    const earned = badges.includes(b.id);
+    return `<div class="badge ${earned?'':'locked'}" title="${b.desc}">${b.emoji} ${b.name}</div>`;
+  }).join('');
+
+  const recentHtml = games.slice(-5).reverse().map((g,i)=>`
+    <div class="rating-row">
+      <div class="rating-pos" style="color:var(--text3)">${i+1}</div>
+      <div class="rating-info"><div class="rating-name">Партия</div><div class="rating-rank">${new Date(g.date).toLocaleDateString('ru-RU')}</div></div>
+      <div><div class="rating-score">${g.total}</div><div class="rating-score-label">ударов</div></div>
+    </div>`).join('');
+
+  wrap.innerHTML = `
+    <div class="profile-header">
+      ${avatarHtml}
+      <div class="profile-name">${currentUser.displayName||'Игрок'}</div>
+      <div class="rank-badge">${rank}</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val">${games.length}</div><div class="stat-label">Партий сыграно</div></div>
+      <div class="stat-card"><div class="stat-val">${best}</div><div class="stat-label">Лучший результат</div></div>
+      <div class="stat-card"><div class="stat-val">${avg||'—'}</div><div class="stat-label">Средний (5 партий)</div></div>
+      <div class="stat-card"><div class="stat-val">${badges.length}</div><div class="stat-label">Бейджей</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Бейджи</div>
+      <div class="badges-wrap">${badgesHtml}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Последние партии</div>
+      ${recentHtml || '<div class="empty-text" style="padding:16px 0;color:var(--text3)">Ещё нет партий</div>'}
+    </div>
+    ${renderHolesAnalysis(userProfile.holeAvgs)}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="share-btn" onclick="shareProfile()" style="flex:1;justify-content:center">🔗 Поделиться профилем</button>
+    </div>
+    <button class="btn btn-outline" onclick="window.signOut()" style="margin-top:8px">Выйти</button>`;
+};
+
+
+window.shareProfile = () => {
+  const uid = currentUser?.uid;
+  if (!uid) return;
+  const url = window.location.origin + window.location.pathname + '?user=' + uid;
+  navigator.clipboard.writeText(url).then(()=>toast('Ссылка скопирована!')).catch(()=>{
+    prompt('Скопируй ссылку:', url);
+  });
+};
+
+// ─── RATING ───────────────────────────────────────────
+window.switchRating = (mode) => {
+  ratingMode = mode;
+  document.querySelectorAll('#rating-screen .rating-tab').forEach((b,i)=>b.classList.toggle('active',
+    (i===0&&mode==='alltime')||(i===1&&mode==='month')||(i===2&&mode==='best_hole')
+  ));
+  if (mode === 'best_hole') loadBestHoleRating();
+  else loadRating();
+};
+
+async function loadRating() {
+  const list = document.getElementById('rating-list');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    let q;
+    if (ratingMode === 'month') {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);startOfMonth.setHours(0,0,0,0);
+      q = query(collection(db,'games'), where('date','>=',startOfMonth.toISOString()), orderBy('date','asc'));
+    } else {
+      q = query(collection(db,'games'), orderBy('total','asc'), limit(50));
+    }
+    const snap = await getDocs(q);
+    const games = snap.docs.map(d=>d.data());
+
+    // aggregate by user
+    const byUser = {};
+    for (const g of games) {
+      if (!g.uid) continue;
+      if (!byUser[g.uid]) byUser[g.uid] = {total:Infinity, count:0, best:Infinity};
+      if (g.total < byUser[g.uid].best) byUser[g.uid].best = g.total;
+      byUser[g.uid].count++;
+    }
+
+    // load user names
+    const uids = Object.keys(byUser);
+    const names = {};
+    for (const uid of uids) {
+      try {
+        const s = await getDoc(doc(db,'users',uid));
+        if (s.exists()) {
+          names[uid] = {name:s.data().name||'Игрок', photo:s.data().photo||s.data().photoURL||null, rank:s.data().rank||'🌱 Новичок', avg:s.data().avg||'—'};
+        }
+      } catch(e){}
+    }
+
+    const sorted = uids.sort((a,b)=>{
+      const aAvg = names[a]?.avg||999;
+      const bAvg = names[b]?.avg||999;
+      if (typeof aAvg==='number' && typeof bAvg==='number') return aAvg-bAvg;
+      return byUser[a].best - byUser[b].best;
+    });
+
+    if (sorted.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div><div class="empty-text">Пока нет данных</div></div>';
+      return;
+    }
+
+    const posColors = ['gold','silver','bronze'];
+    const posEmoji = ['🥇','🥈','🥉'];
+    list.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
+    sorted.map((uid,i)=>{
+      const u = names[uid]||{name:'Игрок',photo:null,rank:'🌱 Новичок',avg:'—'};
+      const isMe = uid === currentUser?.uid;
+      const avatarHtml = u.photo
+        ? `<img src="${u.photo}" class="rating-avatar" style="width:40px;height:40px" alt="">`
+        : `<div class="rating-avatar-placeholder" style="width:40px;height:40px;font-size:18px">👤</div>`;
+      return `<div style="background:var(--bg2);border:1px solid ${isMe?'var(--green)':'var(--border)'};border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+        <div style="font-size:18px">${posEmoji[i]||i+1}</div>
+        ${avatarHtml}
+        <div style="font-size:13px;font-weight:600;color:${isMe?'var(--green)':'var(--text)'};line-height:1.2">${u.name}${isMe?'<br><span style="font-size:10px">ты</span>':''}</div>
+        <div style="font-size:10px;color:var(--text2)">${u.rank}</div>
+        <div style="font-size:22px;font-weight:700;color:var(--green)">${typeof u.avg==='number'?u.avg.toFixed(1):u.avg}</div>
+        <div style="font-size:10px;color:var(--text3)">ср. счёт</div>
+      </div>`;
+    }).join('') + `</div>`;
+  } catch(e) {
+    list.innerHTML = `<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>`;
+    console.error(e);
+  }
+}
+
+// ─── TOURNAMENTS ──────────────────────────────────────
+window.showCreateTournament = () => {
+  if (!currentUser) { toast('Нужно войти в аккаунт'); return; }
+  document.getElementById('t-main').style.display='none';
+  document.getElementById('t-create').style.display='block';
+  document.getElementById('t-join').style.display='none';
+  document.getElementById('t-detail').style.display='none';
+};
+window.showJoinTournament = () => {
+  document.getElementById('t-main').style.display='none';
+  document.getElementById('t-create').style.display='none';
+  document.getElementById('t-join').style.display='block';
+  document.getElementById('t-detail').style.display='none';
+};
+window.showTMain = () => {
+  document.getElementById('t-main').style.display='block';
+  document.getElementById('t-create').style.display='none';
+  document.getElementById('t-join').style.display='none';
+  document.getElementById('t-detail').style.display='none';
+  loadTournaments();
+};
+
+function generateCode() {
+  return String(Math.floor(1000+Math.random()*9000));
+}
+
+window.createTournament = async () => {
+  const name = document.getElementById('t-name-input').value.trim() || 'Турнир';
+  const code = generateCode();
+  const uid = currentUser.uid;
+  try {
+    const ref = await addDoc(collection(db,'tournaments'),{
+      name, code, createdBy: uid,
+      createdAt: new Date().toISOString(),
+      status: 'open',
+      participants: [uid],
+      participantNames: {[uid]: currentUser.displayName||'Игрок'},
+      participantPhotos: {[uid]: currentUser.photoURL||null},
+      scores: {}, finished: {}, totals: {}
+    });
+    toast(`Турнир создан! Код: ${code}`);
+    showTournamentDetail(ref.id);
+  } catch(e) { toast('Ошибка создания'); console.error(e); }
+};
+
+window.joinTournament = async () => {
+  const code = document.getElementById('t-code-input').value.trim();
+  if (code.length !== 4) { toast('Введи 4-значный код'); return; }
+  try {
+    const q = query(collection(db,'tournaments'), where('code','==',code), where('status','==','open'));
+    const snap = await getDocs(q);
+    if (snap.empty) { toast('Турнир не найден'); return; }
+    const tDoc = snap.docs[0];
+    const tid = tDoc.id;
+    if (currentUser) {
+      const uid = currentUser.uid;
+      await updateDoc(doc(db,'tournaments',tid),{
+        participants: arrayUnion(uid),
+        [`participantNames.${uid}`]: currentUser.displayName||'Игрок',
+        [`participantPhotos.${uid}`]: currentUser.photoURL||null
+      });
+    }
+    toast('Присоединился к турниру!');
+    showTournamentDetail(tid);
+  } catch(e) { toast('Ошибка'); console.error(e); }
+};
+
+async function loadTournaments() {
+  const list = document.getElementById('t-list');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    const q = query(collection(db,'tournaments'), where('status','==','open'), orderBy('createdAt','desc'), limit(10));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div><div class="empty-text">Нет активных турниров</div></div>';
+      return;
+    }
+    list.innerHTML = snap.docs.map(d=>{
+      const t = d.data();
+      const n = t.participants?.length||0;
+      return `<div class="t-list-item" onclick="showTournamentDetail('${d.id}')">
+        <div>
+          <div class="t-name">${t.name}</div>
+          <div class="t-meta">${n} участник${n===1?'':'ов'} · ${new Date(t.createdAt).toLocaleDateString('ru-RU')}</div>
+        </div>
+        <div class="t-code">${t.code}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>';
+  }
+}
+
+async function showTournamentDetail(tid) {
+  document.getElementById('t-main').style.display='none';
+  document.getElementById('t-create').style.display='none';
+  document.getElementById('t-join').style.display='none';
+  document.getElementById('t-detail').style.display='block';
+  document.getElementById('t-detail-name').textContent = 'Загрузка...';
+
+  try {
+    const snap = await getDoc(doc(db,'tournaments',tid));
+    if (!snap.exists()) { toast('Турнир не найден'); showTMain(); return; }
+    currentTournament = {id:tid, ...snap.data()};
+    const t = currentTournament;
+
+    document.getElementById('t-detail-name').textContent = t.name;
+    document.getElementById('t-detail-meta').textContent = `${t.participants?.length||0} участников · Код: ${t.code}`;
+    document.getElementById('t-detail-code').textContent = t.code;
+
+    // participants
+    const parts = document.getElementById('t-participants');
+    parts.innerHTML = (t.participants||[]).map(uid=>{
+      const name = t.participantNames?.[uid]||'Игрок';
+      const photo = t.participantPhotos?.[uid];
+      const finished = t.finished?.[uid];
+      const total = t.totals?.[uid];
+      const avatarHtml = photo
+        ? `<img src="${photo}" class="participant-avatar" alt="">`
+        : `<div class="participant-avatar-placeholder">👤</div>`;
+      return `<div class="participant-row">
+        ${avatarHtml}
+        <div class="participant-name">${name}</div>
+        <div class="participant-status ${finished?'ready':''}">${finished?`✓ ${total} уд.`:'в игре'}</div>
+      </div>`;
+    }).join('');
+
+    // results if all finished
+    const allFinished = (t.participants||[]).every(uid=>t.finished?.[uid]);
+    if (allFinished && Object.keys(t.totals||{}).length > 0) {
+      document.getElementById('t-results-wrap').style.display='block';
+      const sorted = Object.entries(t.totals).sort((a,b)=>a[1]-b[1]);
+      const medals = ['🥇','🥈','🥉'];
+      document.getElementById('t-results').innerHTML = sorted.map(([uid,total],i)=>{
+        const name = t.participantNames?.[uid]||'Игрок';
+        return `<div class="podium-row">
+          <div class="podium-pos">${medals[i]||i+1}</div>
+          <div class="podium-info"><div class="podium-name">${name}</div></div>
+          <div class="podium-score">${total}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // show start button if participant
+    const isParticipant = currentUser && (t.participants||[]).includes(currentUser.uid);
+    const alreadyFinished = currentUser && t.finished?.[currentUser.uid];
+    const startBtn = document.getElementById('t-start-btn');
+    startBtn.style.display = (isParticipant && !alreadyFinished) ? 'block' : 'none';
+  } catch(e) { toast('Ошибка'); console.error(e); }
+}
+
+window.showTournamentDetail = showTournamentDetail;
+
+// ─── TOAST ────────────────────────────────────────────
+window.toast = (msg) => {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+};
+
+// ─── INIT ─────────────────────────────────────────────
+// check resume after auth
+setTimeout(checkResume, 500);
+
+// Export signOut
+window._auth = auth;
+window.signOut = () => signOut(auth).then(()=>location.reload()).catch(()=>location.reload());
+
+
+
+async function loadBestHoleRating() {
+  const list = document.getElementById('rating-list');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    const allSnap = await getDocs(query(collection(db,'games'), limit(200)));
+    const allGames = allSnap.docs.map(d=>d.data()).filter(g=>g.holes&&g.holes.length===18);
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthGames = allGames.filter(g => new Date(g.date) >= startOfMonth);
+
+    // load user names
+    const uids = [...new Set(allGames.map(g=>g.uid).filter(Boolean))];
+    const names = {};
+    for (const uid of uids) {
+      try {
+        const s = await getDoc(doc(db,'users',uid));
+        if (s.exists()) names[uid] = {name:s.data().name||'Игрок', photo:s.data().photo||null};
+      } catch(e){}
+    }
+
+    function getBestPerHole(games) {
+      const best = {};
+      for (const g of games) {
+        if (!g.uid || !g.holes) continue;
+        g.holes.forEach((h,i) => {
+          if (h <= 0) return;
+          const key = i;
+          if (!best[key] || h < best[key].score || (h === best[key].score && new Date(g.date) < new Date(best[key].date))) {
+            best[key] = {uid: g.uid, score: h, date: g.date};
+          }
+        });
+      }
+      return best;
+    }
+
+    const allTimeBest = getBestPerHole(allGames);
+    const monthBest = getBestPerHole(monthGames);
+
+    let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;padding:6px;background:var(--bg2);border-radius:var(--radius-sm)">Всё время</div>
+      <div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;padding:6px;background:var(--bg2);border-radius:var(--radius-sm)">Этот месяц</div>
+    </div>`;
+
+    for (let h=0; h<18; h++) {
+      const at = allTimeBest[h];
+      const mo = monthBest[h];
+      const atName = at ? (names[at.uid]?.name||'?') : '—';
+      const moName = mo ? (names[mo.uid]?.name||'?') : '—';
+      const atMe = at?.uid === currentUser?.uid;
+      const moMe = mo?.uid === currentUser?.uid;
+      html += `<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:4px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
+        <div style="font-size:11px;font-weight:600;color:var(--text3)">Л${h+1}</div>
+        <div style="font-size:12px;${atMe?'color:var(--green);font-weight:600':'color:var(--text)'}">
+          ${atName}${at?` <span style="color:var(--text3)">${at.score}</span>`:''}
+        </div>
+        <div style="font-size:12px;${moMe?'color:var(--green);font-weight:600':'color:var(--text2)'}">
+          ${moName}${mo?` <span style="color:var(--text3)">${mo.score}</span>`:''}
+        </div>
+      </div>`;
+    }
+
+    list.innerHTML = html;
+  } catch(e) {
+    list.innerHTML = '<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>';
+    console.error(e);
+  }
+}
+
+let holesViewMode = 'heatmap';
+window.switchHolesView = (mode) => {
+  holesViewMode = mode;
+  document.querySelectorAll('#holes-screen .rating-tab').forEach((b,i)=>b.classList.toggle('active',(i===0&&mode==='heatmap')||(i===1&&mode==='table')));
+  document.getElementById('holes-table-view').style.display = mode==='table'?'block':'none';
+  document.getElementById('holes-heatmap-view').style.display = mode==='heatmap'?'block':'none';
+};
+
+async function loadHolesScreen() {
+  const tableView = document.getElementById('holes-table-view');
+  const heatView = document.getElementById('holes-heatmap-view');
+  tableView.innerHTML = '<div class="loading">Загрузка...</div>';
+  heatView.innerHTML = '<div class="loading">Загрузка...</div>';
+
+  try {
+    const snap = await getDocs(query(collection(db,'games'), limit(200)));
+    const games = snap.docs.map(d=>d.data()).filter(g=>g.holes&&g.holes.length===18);
+
+    if (games.length === 0) {
+      tableView.innerHTML = '<div class="empty"><div class="empty-icon">⛳</div><div class="empty-text">Нет данных</div></div>';
+      return;
+    }
+
+    // calc avg and best per hole
+    const holeStats = Array.from({length:18}, (_,i) => {
+      const vals = games.map(g=>g.holes[i]).filter(v=>v>0);
+      const avg = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+      const best = vals.length ? Math.min(...vals) : 0;
+      return {hole:i+1, avg, best, count:vals.length};
+    });
+
+    // 5-level difficulty based on actual data range
+    const avgs = holeStats.filter(h=>h.avg>0).map(h=>h.avg);
+    const minAvg = Math.min(...avgs);
+    const maxAvg = Math.max(...avgs);
+    const step = (maxAvg - minAvg) / 5;
+
+    function getDifficulty(avg) {
+      if (!avg) return {label:'—', color:'var(--text3)', bg:'var(--bg2)'};
+      const pos = (avg - minAvg) / (maxAvg - minAvg);
+      if (pos < 0.2) return {label:'Простая',    color:'#166534', bg:'#dcfce7'};
+      if (pos < 0.4) return {label:'Лёгкая',     color:'#1e5799', bg:'#dbeafe'};
+      if (pos < 0.6) return {label:'Средняя',    color:'#92400e', bg:'#fef3c7'};
+      if (pos < 0.8) return {label:'Сложная',    color:'#9a3412', bg:'#ffedd5'};
+      return               {label:'Очень сложная', color:'#7f1d1d', bg:'#fee2e2'};
+    }
+
+    // TABLE VIEW
+    let tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>
+        <th style="padding:5px 4px;text-align:left;color:var(--text3);border-bottom:0.5px solid var(--border)">Лунка</th>
+        <th style="padding:5px 4px;text-align:center;color:var(--text3);border-bottom:0.5px solid var(--border)">Среднее</th>
+        <th style="padding:5px 4px;text-align:center;color:var(--text3);border-bottom:0.5px solid var(--border)">Лучший</th>
+        <th style="padding:5px 4px;text-align:left;color:var(--text3);border-bottom:0.5px solid var(--border)">Сложность</th>
+      </tr></thead><tbody>`;
+
+    holeStats.forEach(h => {
+      const d = getDifficulty(h.avg);
+      tableHtml += `<tr>
+        <td style="padding:6px 4px;font-weight:600;color:var(--text)">Л${h.hole}</td>
+        <td style="padding:6px 4px;text-align:center;color:var(--text)">${h.avg ? h.avg.toFixed(1) : '—'}</td>
+        <td style="padding:6px 4px;text-align:center;color:var(--green);font-weight:600">${h.best || '—'}</td>
+        <td style="padding:6px 4px"><span style="font-size:11px;padding:2px 7px;border-radius:20px;background:${d.bg};color:${d.color};white-space:nowrap">${d.label}</span></td>
+      </tr>`;
+    });
+    const validHoles = holeStats.filter(h=>h.avg>0);
+    const totalAvg = validHoles.length ? validHoles.reduce((a,h)=>a+h.avg,0)/validHoles.length : 0;
+    const totalSum = validHoles.length ? validHoles.reduce((a,h)=>a+h.avg,0) : 0;
+    tableHtml += `<tr style="border-top:1px solid var(--border2)">
+      <td style="padding:8px 4px;font-weight:600;color:var(--text);font-size:11px">Итого</td>
+      <td style="padding:8px 4px;text-align:center;font-weight:600;color:var(--green)">${totalAvg.toFixed(1)}</td>
+      <td style="padding:8px 4px;text-align:center;font-weight:600;color:var(--green)">${totalSum.toFixed(0)}</td>
+      <td style="padding:8px 4px;font-size:11px;color:var(--text2)">ср. по полю</td>
+    </tr>`;
+    tableHtml += '</tbody></table>';
+    tableView.innerHTML = tableHtml;
+
+    // HEATMAP VIEW
+    let heatHtml = `<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px">`;
+    holeStats.forEach(h => {
+      const d = getDifficulty(h.avg);
+      heatHtml += `<div style="background:${d.bg};border-radius:8px;padding:6px 2px;text-align:center">
+        <div style="font-size:10px;color:${d.color};font-weight:500">Л${h.hole}</div>
+        <div style="font-size:13px;font-weight:600;color:${d.color}">${h.avg ? h.avg.toFixed(1) : '—'}</div>
+      </div>`;
+    });
+    heatHtml += '</div>';
+    const validH = holeStats.filter(h=>h.avg>0);
+    const fieldAvg = validH.length ? (validH.reduce((a,h)=>a+h.avg,0)/validH.length).toFixed(1) : '—';
+    const fieldSum = validH.length ? validH.reduce((a,h)=>a+h.avg,0).toFixed(0) : '—';
+    heatHtml += `<div style="display:flex;gap:12px;margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius-sm)">
+      <div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--text2)">Среднее по полю</div><div style="font-size:18px;font-weight:700;color:var(--green)">${fieldAvg}</div></div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--text2)">Сумма средних</div><div style="font-size:18px;font-weight:700;color:var(--green)">${fieldSum}</div></div>
+    </div>`;
+
+    // legend
+    const levels = [
+      {label:'Простая', bg:'#dcfce7', color:'#166534'},
+      {label:'Лёгкая', bg:'#dbeafe', color:'#1e5799'},
+      {label:'Средняя', bg:'#fef3c7', color:'#92400e'},
+      {label:'Сложная', bg:'#ffedd5', color:'#9a3412'},
+      {label:'Очень сложная', bg:'#fee2e2', color:'#7f1d1d'},
+    ];
+    heatHtml += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">`;
+    levels.forEach(l => {
+      heatHtml += `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${l.bg};color:${l.color}">${l.label}</span>`;
+    });
+    heatHtml += '</div>';
+    heatView.innerHTML = heatHtml;
+
+  } catch(e) {
+    tableView.innerHTML = '<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>';
+    console.error(e);
+  }
+}
+</script>
+</body>
+</html>
 function doPost(e) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   const data = JSON.parse(e.postData.contents);
