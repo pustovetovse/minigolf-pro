@@ -1001,22 +1001,7 @@ function checkResume() {
     if (!raw) return;
     const d = JSON.parse(raw);
     if (!d.myScores || !d.myScores.some(s=>s>0)) { clearAutosave(); return; }
-    const ago = Math.round((Date.now()-d.savedAt)/60000);
-    const agoText = ago<1?'только что':ago<60?`${ago} мин назад`:`${Math.round(ago/60)} ч назад`;
-    if (confirm(`Есть незавершённая игра (${agoText}, лунка ${d.currentHole+1}). Продолжить?`)) {
-      myScores = d.myScores;
-      guestPlayers = (d.guestPlayers||[]).map(g=>({...g, scores:g.scores||Array(18).fill(0)}));
-      currentHole = d.currentHole;
-      roundNumber = d.roundNumber||1;
-      savePublic = d.savePublic!==false;
-      activeTournamentId = d.activeTournamentId||null;
-      document.getElementById('game-setup').style.display='none';
-      document.getElementById('game-play').style.display='block';
-      document.getElementById('game-results').style.display='none';
-      renderGame();
-    } else {
-      clearAutosave();
-    }
+    showResumeBanner();
   } catch(e){}
 }
 
