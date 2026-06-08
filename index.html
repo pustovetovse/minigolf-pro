@@ -209,7 +209,7 @@ input[type=text]:focus{border-color:var(--green)}
 
 <!-- NAV -->
 <nav class="nav" id="main-nav" style="display:none">
-  <div class="nav-logo">⛳ МиниГольф</div>
+  <div class="nav-logo" onclick="showTab('game')" style="cursor:pointer">⛳ МиниГольф</div>
   <div class="nav-right">
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showTab('game')">Игра</button>
@@ -250,6 +250,9 @@ input[type=text]:focus{border-color:var(--green)}
   </div>
 
   <div id="game-play" style="display:none">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button onclick="confirmExitGame()" style="background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:4px 8px">✕ Выйти из игры</button>
+    </div>
     <div class="hole-header">
       <button class="nav-btn2" id="prev-btn" onclick="prevHole()">←</button>
       <div style="text-align:center">
@@ -476,6 +479,7 @@ window.signInGoogle = async () => {
 
 window.continueAsGuest = () => {
   currentUser = null;
+  guestPlayers = [];
   showApp();
 };
 
@@ -584,6 +588,16 @@ window.startGame = () => {
   document.getElementById('game-results').style.display = 'none';
   renderGame();
   autosave();
+};
+
+
+window.confirmExitGame = () => {
+  if (confirm('Выйти из текущей игры? Прогресс сохранится и можно будет продолжить.')) {
+    autosave();
+    document.getElementById('game-play').style.display = 'none';
+    document.getElementById('game-setup').style.display = 'block';
+    renderGuestList();
+  }
 };
 
 window.startTournamentGame = () => {
