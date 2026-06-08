@@ -495,6 +495,7 @@ async function loadOrCreateProfile(user) {
       uid: user.uid,
       name: user.displayName,
       photo: user.photoURL,
+      photoURL: user.photoURL,
       games: [],
       badges: [],
       createdAt: Date.now()
@@ -502,6 +503,10 @@ async function loadOrCreateProfile(user) {
     await setDoc(ref, userProfile);
   } else {
     userProfile = snap.data();
+    // Update photo on every login in case it changed
+    if (user.photoURL && snap.data().photo !== user.photoURL) {
+      setDoc(doc(db,'users',user.uid), {photo: user.photoURL, photoURL: user.photoURL}, {merge:true}).catch(()=>{});
+    }
   }
   renderNavAvatar();
 }
@@ -995,7 +1000,7 @@ async function loadRating() {
       try {
         const s = await getDoc(doc(db,'users',uid));
         if (s.exists()) {
-          names[uid] = {name:s.data().name||'Игрок', photo:s.data().photo||null, rank:s.data().rank||'🌱 Новичок', avg:s.data().avg||'—'};
+          names[uid] = {name:s.data().name||'Игрок', photo:s.data().photo||s.data().photoURL||null, rank:s.data().rank||'🌱 Новичок', avg:s.data().avg||'—'};
         }
       } catch(e){}
     }
