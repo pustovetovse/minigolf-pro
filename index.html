@@ -590,8 +590,10 @@ function renderGuestList() {
 }
 
 window.addGuestPlayer = () => {
+  console.log('addGuestPlayer called, current length:', guestPlayers.length);
   if (guestPlayers.length >= 5) { toast('Максимум 5 гостей'); return; }
   guestPlayers.push({name:'Гость '+(guestPlayers.length+1), scores:Array(18).fill(0)});
+  console.log('after push:', guestPlayers.length, JSON.stringify(guestPlayers.map(g=>g.name)));
   renderGuestList();
 };
 
@@ -652,6 +654,7 @@ function getNextRound() {
 }
 
 window.startGame = () => {
+  console.log('startGame, guestPlayers:', guestPlayers.length, JSON.stringify(guestPlayers.map(g=>g.name)));
   myScores = Array(18).fill(0);
   // sync guest names from inputs
   document.querySelectorAll('#guest-players-list input').forEach((inp,i) => {
