@@ -1598,30 +1598,59 @@ async function loadHolesScreen() {
     tableView.innerHTML = tableHtml;
 
     // HEATMAP VIEW
+        // HEATMAP VIEW
     let heatHtml = `<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px">`;
-    holeStats.forEach(h => {
+    holeStats.forEach(h=>{
       const d = getDifficulty(h.avg);
       heatHtml += `<div style="background:${d.bg};border-radius:8px;padding:6px 2px;text-align:center">
-        <div style="font-size:10px;color:${d.color};font-weight:500">Л${h.hole}</div>
-        <div style="font-size:13px;font-weight:600;color:${d.color}">${h.avg ? h.avg.toFixed(1) : '—'}</div>
+        <div style="font-size:10px;color:${d.color};font-weight:500">${h.hole}</div>
+        <div style="font-size:13px;font-weight:600;color:${d.color}">${h.avg ? h.avg.toFixed(1) : ''}</div>
       </div>`;
     });
-    heatHtml += '</div>';
-    const validH = holeStats.filter(h=>h.avg>0);
-    const fieldAvg = validH.length
-      ? (validH.reduce((a,h)=>a + h.avg, 0) / validH.length).toFixed(1)
-      : '—';
-      heatHtml += `<div style="display:flex;gap:12px;margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius-sm)">
+    heatHtml += `</div>`;
+
+    // агрегаты по полю
+    const validH = holeStats.filter(h => h.avg > 0);
+    let fieldAvg = '—';      // средний по лунке
+    let fieldTotal = '—';    // средний итог по полю (18 * avg)
+    let spreadText = '—';    // стандартное отклонение по лункам
+
+    if (validH.length) {
+      const vals = validH.map(h => h.avg);
+      const sum = vals.reduce((a, v) => a + v, 0);
+      const avg = sum / vals.length;
+
+      // средний по лунке
+      fieldAvg = avg.toFixed(2);
+
+      // средний итог по полю = 18 * avg
+      const total = avg * HOLES; // HOLES = 18
+      fieldTotal = total.toFixed(1);
+
+      // стандартное отклонение по лункам
+      const variance = vals.reduce((a, v) => a + Math.pow(v - avg, 2), 0) / vals.length;
+      const std = Math.sqrt(variance);
+      spreadText = std.toFixed(2);
+    }
+
+    heatHtml += `<div style="display:flex;gap:12px;margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius-sm)">
       <div style="flex:1;text-align:center">
-        <div style="font-size:11px;color:var(--text2)">Среднее по лункам</div>
+        <div style="font-size:11px;color:var(--text2)">Средний по лунке</div>
         <div style="font-size:18px;font-weight:700;color:var(--green)">${fieldAvg}</div>
       </div>
       <div style="width:1px;background:var(--border)"></div>
       <div style="flex:1;text-align:center">
         <div style="font-size:11px;color:var(--text2)">Средний итог по полю</div>
-        <div style="font-size:18px;font-weight:700;color:var(--green)">${fieldAvg}</div>
+        <div style="font-size:18px;font-weight:700;color:var(--green)">${fieldTotal}</div>
+      </div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:11px;color:var(--text2)">Станд. отклонение по лункам</div>
+        <div style="font-size:18px;font-weight:700;color:var(--green)">${spreadText}</div>
       </div>
     </div>`;
+
+    heatView.innerHTML = heatHtml;
 
     // legend
     const levels = [
