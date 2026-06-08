@@ -1608,12 +1608,19 @@ async function loadHolesScreen() {
     });
     heatHtml += '</div>';
     const validH = holeStats.filter(h=>h.avg>0);
-    const fieldAvg = validH.length ? (validH.reduce((a,h)=>a+h.avg,0)/validH.length).toFixed(1) : '—';
-    const fieldBest = holeStats.reduce((a,h)=>a+(h.best||0),0);
-    heatHtml += `<div style="display:flex;gap:12px;margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius-sm)">
-      <div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--text2)">Среднее по полю</div><div style="font-size:18px;font-weight:700;color:var(--green)">${fieldAvg}</div></div>
+    const fieldAvg = validH.length
+      ? (validH.reduce((a,h)=>a + h.avg, 0) / validH.length).toFixed(1)
+      : '—';
+      heatHtml += `<div style="display:flex;gap:12px;margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius-sm)">
+      <div style="flex:1;text-align:center">
+        <div style="font-size:11px;color:var(--text2)">Среднее по лункам</div>
+        <div style="font-size:18px;font-weight:700;color:var(--green)">${fieldAvg}</div>
+      </div>
       <div style="width:1px;background:var(--border)"></div>
-      <div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--text2)">Лучший итог</div><div style="font-size:18px;font-weight:700;color:var(--green)">${fieldBest}</div></div>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:11px;color:var(--text2)">Средний итог по полю</div>
+        <div style="font-size:18px;font-weight:700;color:var(--green)">${fieldAvg}</div>
+      </div>
     </div>`;
 
     // legend
