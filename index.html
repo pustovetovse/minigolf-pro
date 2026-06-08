@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-h
 .nav-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border2);background:var(--bg2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text2)}
 .nav-btn:hover{background:var(--bg3)}
 .nav-tabs{display:flex;gap:2px;background:var(--bg2);border-radius:var(--radius-sm);padding:3px}
-.nav-tab{padding:5px 12px;border-radius:8px;border:none;background:transparent;color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s}
+.nav-tab{padding:5px 8px;border-radius:8px;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.15s}
 .nav-tab.active{background:var(--green);color:#fff}
 .avatar{width:32px;height:32px;border-radius:50%;border:2px solid var(--green);object-fit:cover;cursor:pointer}
 .avatar-placeholder{width:32px;height:32px;border-radius:50%;border:2px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer}
@@ -214,6 +214,7 @@ input[type=text]:focus{border-color:var(--green)}
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showTab('game')">Игра</button>
       <button class="nav-tab" onclick="showTab('rating')">Рейтинг</button>
+      <button class="nav-tab" onclick="showTab('holes')">Лунки</button>
       <button class="nav-tab" onclick="showTab('tournament')">Турнир</button>
     </div>
     <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀️</button>
@@ -306,9 +307,21 @@ input[type=text]:focus{border-color:var(--green)}
   <div class="rating-tabs">
     <button class="rating-tab active" onclick="switchRating('alltime')">Всё время</button>
     <button class="rating-tab" onclick="switchRating('month')">Месяц</button>
-    <button class="rating-tab" onclick="switchRating('holes')">По лункам</button>
+    <button class="rating-tab" onclick="switchRating('best_hole')">Лучший на лунке</button>
   </div>
   <div id="rating-list"><div class="loading">Загрузка...</div></div>
+</div>
+
+<!-- HOLES SCREEN -->
+<div id="holes-screen" class="screen">
+  <div class="page-title">Лунки</div>
+  <div class="page-sub">Анализ сложности поля</div>
+  <div class="rating-tabs" style="margin-bottom:16px">
+    <button class="rating-tab active" onclick="switchHolesView('table')">Таблица</button>
+    <button class="rating-tab" onclick="switchHolesView('heatmap')">Карта</button>
+  </div>
+  <div id="holes-table-view"><div class="loading">Загрузка...</div></div>
+  <div id="holes-heatmap-view" style="display:none"><div class="loading">Загрузка...</div></div>
 </div>
 
 <!-- TOURNAMENT SCREEN -->
@@ -518,17 +531,18 @@ function showApp() {
 
 // ─── TABS ─────────────────────────────────────────────
 window.showTab = (tab) => {
-  ['game','profile','rating','tournament'].forEach(t => {
+  ['game','profile','rating','holes','tournament'].forEach(t => {
     document.getElementById(t+'-screen').classList.remove('active');
   });
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
   document.getElementById(tab+'-screen').classList.add('active');
-  const tabs = ['game','rating','tournament'];
+  const tabs = ['game','rating','holes','tournament'];
   const idx = tabs.indexOf(tab);
   if (idx >= 0) document.querySelectorAll('.nav-tab')[idx].classList.add('active');
 
   if (tab === 'profile') renderProfile();
   if (tab === 'rating') loadRating();
+  if (tab === 'holes') loadHolesScreen();
   if (tab === 'tournament') loadTournaments();
 };
 
@@ -943,10 +957,10 @@ window.shareProfile = () => {
 // ─── RATING ───────────────────────────────────────────
 window.switchRating = (mode) => {
   ratingMode = mode;
-  document.querySelectorAll('.rating-tab').forEach((b,i)=>b.classList.toggle('active',
-    (i===0&&mode==='alltime')||(i===1&&mode==='month')||(i===2&&mode==='holes')
+  document.querySelectorAll('#rating-screen .rating-tab').forEach((b,i)=>b.classList.toggle('active',
+    (i===0&&mode==='alltime')||(i===1&&mode==='month')||(i===2&&mode==='best_hole')
   ));
-  if (mode === 'holes') loadHolesRating();
+  if (mode === 'best_hole') loadBestHoleRating();
   else loadRating();
 };
 
@@ -1195,3 +1209,171 @@ window._auth = auth;
 </script>
 </body>
 </html>
+async function loadBestHoleRating() {
+  const list = document.getElementById('rating-list');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    const allSnap = await getDocs(query(collection(db,'games'), limit(200)));
+    const allGames = allSnap.docs.map(d=>d.data()).filter(g=>g.holes&&g.holes.length===18);
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthGames = allGames.filter(g => new Date(g.date) >= startOfMonth);
+
+    // load user names
+    const uids = [...new Set(allGames.map(g=>g.uid).filter(Boolean))];
+    const names = {};
+    for (const uid of uids) {
+      try {
+        const s = await getDoc(doc(db,'users',uid));
+        if (s.exists()) names[uid] = {name:s.data().name||'Игрок', photo:s.data().photo||null};
+      } catch(e){}
+    }
+
+    function getBestPerHole(games) {
+      const best = {};
+      for (const g of games) {
+        if (!g.uid || !g.holes) continue;
+        g.holes.forEach((h,i) => {
+          if (h <= 0) return;
+          const key = i;
+          if (!best[key] || h < best[key].score || (h === best[key].score && new Date(g.date) < new Date(best[key].date))) {
+            best[key] = {uid: g.uid, score: h, date: g.date};
+          }
+        });
+      }
+      return best;
+    }
+
+    const allTimeBest = getBestPerHole(allGames);
+    const monthBest = getBestPerHole(monthGames);
+
+    let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;padding:6px;background:var(--bg2);border-radius:var(--radius-sm)">Всё время</div>
+      <div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;padding:6px;background:var(--bg2);border-radius:var(--radius-sm)">Этот месяц</div>
+    </div>`;
+
+    for (let h=0; h<18; h++) {
+      const at = allTimeBest[h];
+      const mo = monthBest[h];
+      const atName = at ? (names[at.uid]?.name||'?') : '—';
+      const moName = mo ? (names[mo.uid]?.name||'?') : '—';
+      const atMe = at?.uid === currentUser?.uid;
+      const moMe = mo?.uid === currentUser?.uid;
+      html += `<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:4px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
+        <div style="font-size:11px;font-weight:600;color:var(--text3)">Л${h+1}</div>
+        <div style="font-size:12px;${atMe?'color:var(--green);font-weight:600':'color:var(--text)'}">
+          ${atName}${at?` <span style="color:var(--text3)">${at.score}</span>`:''}
+        </div>
+        <div style="font-size:12px;${moMe?'color:var(--green);font-weight:600':'color:var(--text2)'}">
+          ${moName}${mo?` <span style="color:var(--text3)">${mo.score}</span>`:''}
+        </div>
+      </div>`;
+    }
+
+    list.innerHTML = html;
+  } catch(e) {
+    list.innerHTML = '<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>';
+    console.error(e);
+  }
+}
+
+let holesViewMode = 'table';
+window.switchHolesView = (mode) => {
+  holesViewMode = mode;
+  document.querySelectorAll('#holes-screen .rating-tab').forEach((b,i)=>b.classList.toggle('active',(i===0&&mode==='table')||(i===1&&mode==='heatmap')));
+  document.getElementById('holes-table-view').style.display = mode==='table'?'block':'none';
+  document.getElementById('holes-heatmap-view').style.display = mode==='heatmap'?'block':'none';
+};
+
+async function loadHolesScreen() {
+  const tableView = document.getElementById('holes-table-view');
+  const heatView = document.getElementById('holes-heatmap-view');
+  tableView.innerHTML = '<div class="loading">Загрузка...</div>';
+  heatView.innerHTML = '<div class="loading">Загрузка...</div>';
+
+  try {
+    const snap = await getDocs(query(collection(db,'games'), limit(200)));
+    const games = snap.docs.map(d=>d.data()).filter(g=>g.holes&&g.holes.length===18);
+
+    if (games.length === 0) {
+      tableView.innerHTML = '<div class="empty"><div class="empty-icon">⛳</div><div class="empty-text">Нет данных</div></div>';
+      return;
+    }
+
+    // calc avg and best per hole
+    const holeStats = Array.from({length:18}, (_,i) => {
+      const vals = games.map(g=>g.holes[i]).filter(v=>v>0);
+      const avg = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+      const best = vals.length ? Math.min(...vals) : 0;
+      return {hole:i+1, avg, best, count:vals.length};
+    });
+
+    // 5-level difficulty based on actual data range
+    const avgs = holeStats.filter(h=>h.avg>0).map(h=>h.avg);
+    const minAvg = Math.min(...avgs);
+    const maxAvg = Math.max(...avgs);
+    const step = (maxAvg - minAvg) / 5;
+
+    function getDifficulty(avg) {
+      if (!avg) return {label:'—', color:'var(--text3)', bg:'var(--bg2)'};
+      const pos = (avg - minAvg) / (maxAvg - minAvg);
+      if (pos < 0.2) return {label:'Простая',    color:'#166534', bg:'#dcfce7'};
+      if (pos < 0.4) return {label:'Лёгкая',     color:'#1e5799', bg:'#dbeafe'};
+      if (pos < 0.6) return {label:'Средняя',    color:'#92400e', bg:'#fef3c7'};
+      if (pos < 0.8) return {label:'Сложная',    color:'#9a3412', bg:'#ffedd5'};
+      return               {label:'Очень сложная', color:'#7f1d1d', bg:'#fee2e2'};
+    }
+
+    // TABLE VIEW
+    let tableHtml = `<table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr>
+        <th style="padding:5px 4px;text-align:left;color:var(--text3);border-bottom:0.5px solid var(--border)">Лунка</th>
+        <th style="padding:5px 4px;text-align:center;color:var(--text3);border-bottom:0.5px solid var(--border)">Среднее</th>
+        <th style="padding:5px 4px;text-align:center;color:var(--text3);border-bottom:0.5px solid var(--border)">Лучший</th>
+        <th style="padding:5px 4px;text-align:left;color:var(--text3);border-bottom:0.5px solid var(--border)">Сложность</th>
+      </tr></thead><tbody>`;
+
+    holeStats.forEach(h => {
+      const d = getDifficulty(h.avg);
+      tableHtml += `<tr>
+        <td style="padding:6px 4px;font-weight:600;color:var(--text)">Л${h.hole}</td>
+        <td style="padding:6px 4px;text-align:center;color:var(--text)">${h.avg ? h.avg.toFixed(1) : '—'}</td>
+        <td style="padding:6px 4px;text-align:center;color:var(--green);font-weight:600">${h.best || '—'}</td>
+        <td style="padding:6px 4px"><span style="font-size:11px;padding:2px 7px;border-radius:20px;background:${d.bg};color:${d.color};white-space:nowrap">${d.label}</span></td>
+      </tr>`;
+    });
+    tableHtml += '</tbody></table>';
+    tableView.innerHTML = tableHtml;
+
+    // HEATMAP VIEW
+    let heatHtml = `<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px">`;
+    holeStats.forEach(h => {
+      const d = getDifficulty(h.avg);
+      heatHtml += `<div style="background:${d.bg};border-radius:8px;padding:6px 2px;text-align:center">
+        <div style="font-size:10px;color:${d.color};font-weight:500">Л${h.hole}</div>
+        <div style="font-size:13px;font-weight:600;color:${d.color}">${h.avg ? h.avg.toFixed(1) : '—'}</div>
+      </div>`;
+    });
+    heatHtml += '</div>';
+
+    // legend
+    const levels = [
+      {label:'Простая', bg:'#dcfce7', color:'#166534'},
+      {label:'Лёгкая', bg:'#dbeafe', color:'#1e5799'},
+      {label:'Средняя', bg:'#fef3c7', color:'#92400e'},
+      {label:'Сложная', bg:'#ffedd5', color:'#9a3412'},
+      {label:'Очень сложная', bg:'#fee2e2', color:'#7f1d1d'},
+    ];
+    heatHtml += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">`;
+    levels.forEach(l => {
+      heatHtml += `<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${l.bg};color:${l.color}">${l.label}</span>`;
+    });
+    heatHtml += '</div>';
+    heatView.innerHTML = heatHtml;
+
+  } catch(e) {
+    tableView.innerHTML = '<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>';
+    console.error(e);
+  }
+}
