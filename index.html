@@ -560,8 +560,10 @@ function showResumeBanner() {
     const agoText = ago<1?'только что':ago<60?`${ago} мин назад`:`${Math.round(ago/60)} ч назад`;
     const banner = document.getElementById('resume-banner');
     if (banner) {
+      const guestCount = (d.guestPlayers||[]).length;
+      const playersInfo = guestCount > 0 ? ` · ${1+guestCount} игроков` : '';
       document.getElementById('resume-info').textContent =
-        `Лунка ${d.currentHole+1} из 18 · ${agoText}`;
+        `Лунка ${d.currentHole+1} из 18 · ${agoText}${playersInfo}`;
       banner.style.display = 'block';
     }
   } catch(e){}
@@ -987,7 +989,7 @@ const SAVE_KEY = 'golf_autosave_v2';
 function autosave() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
-      myScores, currentHole, roundNumber, savePublic, activeTournamentId, savedAt: Date.now()
+      myScores, guestPlayers, currentHole, roundNumber, savePublic, activeTournamentId, savedAt: Date.now()
     }));
   } catch(e){}
 }
@@ -1003,6 +1005,7 @@ function checkResume() {
     const agoText = ago<1?'только что':ago<60?`${ago} мин назад`:`${Math.round(ago/60)} ч назад`;
     if (confirm(`Есть незавершённая игра (${agoText}, лунка ${d.currentHole+1}). Продолжить?`)) {
       myScores = d.myScores;
+      guestPlayers = (d.guestPlayers||[]).map(g=>({...g, scores:g.scores||Array(18).fill(0)}));
       currentHole = d.currentHole;
       roundNumber = d.roundNumber||1;
       savePublic = d.savePublic!==false;
