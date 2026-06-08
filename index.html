@@ -264,7 +264,7 @@ input[type=text]:focus{border-color:var(--green)}
   </div>
 
   <div id="game-play" style="display:none">
-    <div style="padding-top:8px;max-width:480px;margin:0 auto;padding-left:16px;padding-right:16px">
+    <div style="padding-top:8px">
     <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
       <button onclick="confirmExitGame()" style="background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:4px 8px">✕ Выйти из игры</button>
     </div>
@@ -654,6 +654,11 @@ function getNextRound() {
 
 window.startGame = () => {
   myScores = Array(18).fill(0);
+  // sync guest names from inputs
+  document.querySelectorAll('#guest-players-list input').forEach((inp,i) => {
+    if (guestPlayers[i]) guestPlayers[i].name = inp.value.trim() || guestPlayers[i].name;
+  });
+  guestPlayers.forEach(g => { g.scores = Array(18).fill(0); });
   currentHole = 0;
   savePublic = document.getElementById('save-toggle').checked;
   roundNumber = getNextRound();
