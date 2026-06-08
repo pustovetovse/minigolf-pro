@@ -1138,15 +1138,25 @@ async function loadRating() {
     let q;
     if (ratingMode === 'month') {
       const startOfMonth = new Date();
-      startOfMonth.setDate(1);startOfMonth.setHours(0,0,0,0);
-      q = query(collection(db,'games'), where('date','>=',startOfMonth.toISOString()), orderBy('date','asc'));
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0,0,0,0);
+      q = query(
+        collection(db,'games'),
+        where('date','>=',startOfMonth.toISOString()),
+        orderBy('date','asc')
+      );
     } else {
-      q = query(collection(db,'games'), orderBy('total','asc'), limit(50));
+      q = query(
+        collection(db,'games'),
+        orderBy('total','asc'),
+        limit(50)
+      );
     }
-    const snap = await getDocs(q);
-    const games = snap.docs.map(d=>d.data());
 
-    // aggregate by user
+    const snap = await getDocs(q);
+    const games = snap.docs.map(d => d.data());
+
+    // ---- aggregate by user (новая логика) ----
     const byUser = {};
     for (const g of games) {
       if (!g.uid || typeof g.total !== 'number') continue;
@@ -1157,38 +1167,42 @@ async function loadRating() {
       byUser[g.uid].count++;
       if (g.total < byUser[g.uid].best) byUser[g.uid].best = g.total;
     }
-    
-    // посчитать avg для каждого
     for (const uid of Object.keys(byUser)) {
       const u = byUser[uid];
       u.avg = u.count > 0 ? u.sum / u.count : Infinity;
     }
 
-    // load user names
+    // ---- load user names (оставляем как было) ----
     const uids = Object.keys(byUser);
     const names = {};
     for (const uid of uids) {
       try {
         const s = await getDoc(doc(db,'users',uid));
         if (s.exists()) {
-          names[uid] = {name:s.data().name||'Игрок', photo:s.data().photo||s.data().photoURL||null, rank:s.data().rank||'🌱 Новичок', avg:s.data().avg||'—'};
+          names[uid] = {
+            name:  s.data().name  || 'Игрок',
+            photo: s.data().photo || s.data().photoURL || null,
+            rank:  s.data().rank  || '🌱 Новичок',
+            avg:   s.data().avg   ?? '—'
+          };
         }
       } catch(e){}
     }
 
+    // ---- сортировка: разная для month / alltime ----
     let sorted;
     if (ratingMode === 'month') {
-      // сортировка по месяцу: avg за месяц, тайбрейк по best за месяц
+      // сортировка по avg за месяц, тайбрейк по best за месяц
       sorted = uids.sort((a, b) => {
         const aStats = byUser[a];
         const bStats = byUser[b];
-    
+
         if (!aStats && !bStats) return 0;
         if (!aStats) return 1;
         if (!bStats) return -1;
-    
-        if (aStats.avg !== bStats.avg) return aStats.avg - bStats.avg; // меньше avg лучше
-        return aStats.best - bStats.best; // меньше best лучше
+
+        if (aStats.avg !== bStats.avg) return aStats.avg - bStats.avg;
+        return aStats.best - bStats.best;
       });
     } else {
       // сортировка "Всё время": сперва глобальный avg из users, тайбрейк по лучшей игре all‑time
@@ -1197,18 +1211,18 @@ async function loadRating() {
         const bAvgGlobal = names[b]?.avg;
         const aIsNum = typeof aAvgGlobal === 'number';
         const bIsNum = typeof bAvgGlobal === 'number';
-    
+
         if (aIsNum && bIsNum && aAvgGlobal !== bAvgGlobal) {
           return aAvgGlobal - bAvgGlobal;
         }
-    
+
         const aStats = byUser[a];
         const bStats = byUser[b];
-    
+
         if (!aStats && !bStats) return 0;
         if (!aStats) return 1;
         if (!bStats) return -1;
-    
+
         return aStats.best - bStats.best;
       });
     }
@@ -1218,35 +1232,42 @@ async function loadRating() {
       return;
     }
 
-    const posColors = ['gold','silver','bronze'];
     const posEmoji = ['🥇','🥈','🥉'];
-    list.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
-    sorted.map((uid,i)=>{
-      const u = names[uid] || { name:'Игрок', photo:null, rank:'🌱 Новичок', avg:'—' };
-const stats = byUser[uid];
-const isMe = uid === currentUser?.uid;
-const avatarHtml = u.photo
-  ? `<img src="${u.photo}" class="rating-avatar" style="width:40px;height:40px" alt="">`
-  : `<div class="rating-avatar-placeholder" style="width:40px;height:40px;font-size:18px">👤</div>`;
 
-// что показывать как средний счёт
-let displayAvg;
-if (ratingMode === 'month') {
-  // во вкладке "Месяц" — средний за месяц
-  displayAvg = stats?.avg ?? u.avg;
-} else {
-  // во вкладке "Всё время" — глобальный avg из профиля, fallback на пересчитанный
-  displayAvg = typeof u.avg === 'number' ? u.avg : stats?.avg;
+    list.innerHTML =
+      `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
+      sorted.map((uid, i) => {
+        const u = names[uid] || { name:'Игрок', photo:null, rank:'🌱 Новичок', avg:'—' };
+        const stats = byUser[uid];
+        const isMe = uid === currentUser?.uid;
+
+        const avatarHtml = u.photo
+          ? `<img src="${u.photo}" class="rating-avatar" style="width:40px;height:40px" alt="">`
+          : `<div class="rating-avatar-placeholder" style="width:40px;height:40px;font-size:18px">👤</div>`;
+
+        // что показывать как средний счёт
+        let displayAvg;
+        if (ratingMode === 'month') {
+          displayAvg = stats?.avg ?? u.avg;
+        } else {
+          displayAvg = typeof u.avg === 'number' ? u.avg : stats?.avg;
+        }
+
+        return `<div style="background:var(--bg2);border:1px solid ${isMe?'var(--green)':'var(--border)'};border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+          <div style="font-size:18px">${posEmoji[i] || i+1}</div>
+          ${avatarHtml}
+          <div style="font-size:13px;font-weight:600;color:${isMe?'var(--green)':'var(--text)'};line-height:1.2">${u.name}${isMe?'<br><span style="font-size:10px">ты</span>':''}</div>
+          <div style="font-size:10px;color:var(--text2)">${u.rank}</div>
+          <div style="font-size:22px;font-weight:700;color:var(--green)">${typeof displayAvg === 'number' ? displayAvg.toFixed(1) : displayAvg}</div>
+          <div style="font-size:10px;color:var(--text3)">ср. счёт</div>
+        </div>`;
+      }).join('') +
+      `</div>`;
+  } catch (e) {
+    list.innerHTML = `<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>`;
+    console.error(e);
+  }
 }
-
-return `<div style="background:var(--bg2);border:1px solid ${isMe?'var(--green)':'var(--border)'};border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
-  <div style="font-size:18px">${posEmoji[i]||i+1}</div>
-  ${avatarHtml}
-  <div style="font-size:13px;font-weight:600;color:${isMe?'var(--green)':'var(--text)'};line-height:1.2">${u.name}${isMe?'<br><span style="font-size:10px">ты</span>':''}</div>
-  <div style="font-size:10px;color:var(--text2)">${u.rank}</div>
-  <div style="font-size:22px;font-weight:700;color:var(--green)">${typeof displayAvg==='number'?displayAvg.toFixed(1):displayAvg}</div>
-  <div style="font-size:10px;color:var(--text3)">ср. счёт</div>
-</div>`;
       
 // ─── TOURNAMENTS ──────────────────────────────────────
 window.showCreateTournament = () => {
