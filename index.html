@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -185,6 +186,24 @@ input[type=text]:focus{border-color:var(--green)}
 .sheet-status{font-size:13px;margin-top:8px;padding:8px 12px;border-radius:var(--radius-sm);display:none}
 .sheet-status.ok{background:var(--green-bg);color:var(--green);display:block;border:1px solid var(--border2)}
 .sheet-status.err{background:var(--red-bg);color:var(--red);display:block}
+/* HOLES TABLE */
+.holes-analysis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:4px}
+.holes-col{background:var(--bg3);border-radius:var(--radius-sm);padding:10px 8px}
+.holes-col-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;text-align:center}
+.holes-col-title.green{color:var(--green)}
+.holes-col-title.blue{color:#60a5fa}
+.holes-col-title.red{color:var(--red)}
+.hole-item{display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid var(--border)}
+.hole-item:last-child{border-bottom:none}
+.hole-num{font-size:11px;color:var(--text2)}
+.hole-val{font-size:12px;font-weight:600}
+.hole-val.green{color:var(--green)}
+.hole-val.blue{color:#60a5fa}
+.hole-val.red{color:var(--red)}
+/* SHARE */
+.share-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif}
+.share-btn:hover{border-color:var(--green);color:var(--green)}
+
 </style>
 </head>
 <body>
@@ -287,7 +306,8 @@ input[type=text]:focus{border-color:var(--green)}
   <div class="page-sub">Лучшие игроки</div>
   <div class="rating-tabs">
     <button class="rating-tab active" onclick="switchRating('alltime')">Всё время</button>
-    <button class="rating-tab" onclick="switchRating('month')">Этот месяц</button>
+    <button class="rating-tab" onclick="switchRating('month')">Месяц</button>
+    <button class="rating-tab" onclick="switchRating('holes')">По лункам</button>
   </div>
   <div id="rating-list"><div class="loading">Загрузка...</div></div>
 </div>
@@ -346,7 +366,828 @@ input[type=text]:focus{border-color:var(--green)}
 
 <!-- FIREBASE -->
 <script type="module">
-const a0_0x53f76d=a0_0x2147;(function(_0x4d618d,_0x4f6476){const _0x160d85=a0_0x2147,_0x57ce34=_0x4d618d();while(!![]){try{const _0x34c29c=parseInt(_0x160d85(0x1cc))/0x1+parseInt(_0x160d85(0x39c))/0x2+parseInt(_0x160d85(0x27d))/0x3*(parseInt(_0x160d85(0x252))/0x4)+parseInt(_0x160d85(0x35e))/0x5*(-parseInt(_0x160d85(0x207))/0x6)+-parseInt(_0x160d85(0x24c))/0x7+parseInt(_0x160d85(0x203))/0x8*(parseInt(_0x160d85(0x268))/0x9)+-parseInt(_0x160d85(0x288))/0xa;if(_0x34c29c===_0x4f6476)break;else _0x57ce34['push'](_0x57ce34['shift']());}catch(_0x55fb70){_0x57ce34['push'](_0x57ce34['shift']());}}}(a0_0x329a,0xb6cf4));const a0_0x1a50ac=(function(){let _0x598805=!![];return function(_0x4575c8,_0xb5dd7f){const _0x2420f9=_0x598805?function(){const _0x3a627f=a0_0x2147;if(_0xb5dd7f){const _0x170f5f=_0xb5dd7f[_0x3a627f(0x294)](_0x4575c8,arguments);return _0xb5dd7f=null,_0x170f5f;}}:function(){};return _0x598805=![],_0x2420f9;};}()),a0_0x3e1275=a0_0x1a50ac(this,function(){const _0x4b1305=a0_0x2147;return a0_0x3e1275[_0x4b1305(0x217)]()['search'](_0x4b1305(0x261)+'+$')[_0x4b1305(0x217)]()[_0x4b1305(0x1ca)+'r'](a0_0x3e1275)['search'](_0x4b1305(0x261)+'+$');});function a0_0x329a(){const _0x33dcf7=['qNLjza','0jlrGDgpinc/0ldrGngc0lJrJW','z29Sza','CM9MAwXLlwf2yq','zgLZCgXHEu5HBq','pc90zd48l3rYpG','CMvSB2fKkcKIia','Bw9UDgG','0j/qSnga0ylqUnc5ingb0yVqSW','zgL2ignSyxnZpq','0ltqTDc70lG','CMvKDwnL','psj0lwnVzguIpG','BwLUAwDVBgyX','B3rOzxjZlwnHCG','C2LNBKLUr29VzW','Bg9JA2vK','ignSyxnZpsjZDa','C3rYAw5NAwz5','zMLYzwjHC2vHCa','AwXL','0yhrI9cZ0ydqSnc90l4','CgfYDgLJAxbHBG','Dc1JyxjKiJ48za','psjIywrNzsa','DgLUzY1WB3mIia','BIi+8j+pJo+4JZWVzgL2pG','psjKB3qG','0j/qVTgb0ylqVTgp0l3qVDgl0lK','yxnZpsjYyw5Rlq','ChjLDI1IDg4','psjYyxrPBMCTCG','yw1LBNrhyw1L','B3rOzxjZlwXPCW','0yFrGTc+0lhrIYdqSTc40ltqTq','cIaGicaGicaGpa','CMLWDc5NB29NBa','y2HLy2TLza','z2fTzxm','CMvHzhK','yxbWBgLJyxrPBW','Bw9UDgHFy2HHBq','iMvTChr5lxrLEa','0jhqTDc50ltqTTc10lK8l2q','yxnZpsjIywrNzq','cIaGica8zgL2ia','zg9JDw1LBNrfBa','ignSyxnZpsjWBW','0klrG9ga0l3qUngaingb0l7qTW','Dg9UignSyxnZpq','BMv4Dc1IDg4','lxbSywnLAg9Sza','0jlqSTc10ltqUca0lDc30l0','inc90luG0lhqVTc70lxqTsa','icaGicaGidXKAq','8j+uPsdqNncW0yhrGTc10ya','mYSG0yxqVTc7lDc40l0T','Dc1Uyw1LlwLUCa','C2HVD1rnywLU','0ltqSnc9isdqMTc+0lq6ia','Cg9Zia','icJrGTglkq','cIaGicaGidXKAq','pgLTzYbZCMm9iG','phrYpJX0zd4','yxnZpsjWB2rPDq','mYdqV9cW0ydrGTc40lGG0l8','C2v0sg91CNm','pgrPDJ4kicaGia','DgHLBwuTyNrU','zMXVB3i','psjSB2fKAw5NiG','Bhq9iIi+','0khrGnc10ltqVDc40lKGkdu','icaGicaGicaGpa','C2HVD0PVAw5uBW','psjLBxb0Esi+pa','ztu4odi2otHIna','BI10B3a6mtzWEa','C3m9iMHVBgvZlq','inghinc90ldqT9cW0lq','yw50lwf2yxrHCG','0lJrGngdiq','ywrK','zw1WDhK','BM93','BgfZCZ0ICMf0Aq','y29Kzq','yxnZpsjZy29Yzq','zxzLCNK','Dgv4DenVBNrLBG','ingd0yFqSngb0ylqVDc40lO','y2fYzci+pgrPDG','Ag9SzxmTDgfIBa','BgLNAhq','mtaG0l/qSnga0ylqUnc5ia','0yaUingb0yFrKDgcpc9K','phrHyMXLignSyq','0jJqS9ga0l7qUG','0klrG9ga0l3qUnga','pc9KAxy+cIaGia','B2XKiJ7WN4+gpc9KAq','0ypqU9gm0ylqSngcpc9KAq','zY1PBMzViJ48za','y2XPy2S9iNnPzW','phrKignSyxnZpq','yxrPBMCTCMfUAW','CMLTyxj5iIbZDa','Dg9HC3q','yNjVBNPL','zMLSBa','zM8IpGOGicaGia','iMvTChr5lwLJBW','Dci+0j7rInc40lhqUTcWia','zMLYzwjHC2vZDa','Axy+','z2v0rwXLBwvUDa','DIbJBgfZCZ0ICW','pc9IDxr0B24+','iIbJBgfZCZ0Iyq','Aw5Nlw5HBwuIpG','DwLK','DMfSDwu','qLPbm3jxlwLrCW','8j+pHsdqKDgl0llqSnc70yVqUq','BwLU','ywn0AxzL','inc80lJqVsdqVDcW0lFqSnc0','mhDYm25qAvjiqW','icaGpc9KAxy+','zxHPC3rZ','0lxrGIdqTncW0l3qVDgl0yu8','0j7rInc40lhqUTcWingb0l7qTW','BxKTDg90ywW','pgj1DhrVBIbJBa','zs5JB20VBwfJCG','y2XHC3m9iNbYBW','0l3qSnc50ltqTDc9','phrOpG','pgrPDIbJBgfZCW','zxiTC2nVCMuG','pc9KAxy+','B3jLiJ4','pJWVzgL2pG','inc70ypqVDc60lu','0lJqS9ga0l7qUG','l2rPDJ48l2rPDG','0llqSnc90laG0lFqScdqV9cW','ica8zgL2ignSyq','BMf2lwf2yxrHCG','DxnLCNm','BwfPBI1Uyxy','nNb4ida7y29SBW','iNbVzgL1Bs1ZyW','CMf0Aw5N','Dg9gAxHLza','imk3ia','DxjUyw1LBNq','l2rPDJ48zgL2ia','ChvZAa','iNrVDgfSiJ4','zgf0ys10AgvTzq','0kxqVTc7lDc40l0T0llqSnc9','y3vYCMvUDa','mJaXmda1Duzst1jX','z2fTzs1WBgf5','y3jLyxrLzef0','Dg9YqwXS','ica8l2rPDJ4kia','psjVDgHLCI1YBW','DfbOB3rVCY4','0j7rInc40lhqUTcW','C3m9iMnHCMqIpG','iIbJBgfZCZ0ICa','zMLUAxnOzwq','C2f2zs10B2DNBa','ywjLBa','Dg9Nz2XLvgHLBq','C2f2zwrbDa','icaGica8l2rPDG','BM9Uzq','0ydrGTc40y4','0jVrKDc0','BNqTBMfTzsi+','y3vYCMvUDeHVBa','0ldrGnc+0li8l2rPDJ4','Cg9KAxvT','0khqVDcW0lNqV9c10ya','Dg90ywXZlG','iNbHCNrPy2LWyq','DIbJBgfZCZ0ICG','Dc1TywLU','z29SzL9YB3vUza','zw50CMLLCW','cIaGica8l2rPDG','BguIpTcr0lxqUDc00lBqUa','z2fTzs1Yzxn1Ba','r3vLC3q','ingd0yFqSngb0ylqVDc40lRqVG','otmYnZP3zwi6oq','DYi+cIaGicaGia','Aw5Uzxjive1m','BMfTzq','BNvTyMvY','0lxrGngi0zhqVDc90ldrJYdqUa','De5HBwvZlG','zs13CMfW','Cc5JB20','DgLUzY1Zy29Yzq','z2v0rgf0zq','C2v0rgf0zq','0yhrJ9gg0la','B29NBgu8l2j1Da','0j3qUcdqVTc00l3qVTcZ0l4G','0kFqTDc80l/qUnc+0l0G0lZqTq','lcdqU9gd0l3qUTcWia','zgf0yq','Dw0TBMfTzsi+','zM8IpJXKAxyGyW','oJHWEdTWywrKAq','Bwf4','0jZqTDgc0lRqUnc5','DfbOB3rVCW','4PYtincH0l7rHDga0ldqVDc10l0','Ag9Szs1ZDwi','z2LUlxrVCdO4Ca','mti2ndC5oejpsxLSEq','phrOpUkiKtWVDgG+','DgfIBgu+','BwLUAwDVBgyXlG','vg91CM5HBwvUDa','C2LSDMvY','BwvUDa','yMvZDa','pc90zd4','psjJyxjKlxrPDa','quL6yvn5qNnotW','0lZqTDgb0y/rHG','CgHVDg8','lw5HBwuIpG','C2HLzxqTC3rHDa','0ylqUncY0l3rI9gfingc0yprGa','zgLZywjSzwq','C2XPy2u','0jFqSncZ0ydrG9c30lRqSc4U','0ylqVTc70yZqUTc+ingh0ylqVG','BI9QC29U','C3bSAxq','yxjKlxrPDgXLiG','zgL1Bs1WB3mGzW','D2vLA19JAgfTCa','yw50CW','0j/rGnc40llqTDgclca','Dg91CM5HBwvUDa','ksi+','C2nVCMuTCgLJAW','yM53v3bxCNnZuW','yxiIigfSDd0IiG','icaGica8zgL2ia','CgvYzMvJDa','CMf0Aw5Nlw5HBq','iJ4kicaGicaGia','Aw5NlxjVDYi+cG','Dc1QB2LU','yxnZpsjZDgf0lq','8j+rKsdqM9c10lpqTDc90ltqSa','ks4G0j/rGnc+0ltqVTc70ly','DJ4kicaGicaGpa','zgL2pJXKAxyGyW','z2fTzs1Zzxr1Ca','BgfZCZ0ICg9KAq','BNvTzxjPyW','zgL2pJWVzgL2pG','Ag9Szs1SywjLBa','CMvTB3zL','C2HHCNa','ingd0lqU','EdTTyxjNAw46ma','y2XHC3m9iNjHDa','DMf0yxiTCgXHyW','CM91BMroDw1Izq','zw1LBNq','x2f1DgG','EwXLpsjTyxjNAq','y29UC3rYDwn0BW','CMvNDwXHCG','otq4ntjvz1rnv3i','AxvTlxbVCYi+','zM9YrwfJAa','psjWCM9MAwXLlq','yxv0Ac1Zy3jLzq','8j+oRYdqMncZ0ydqVTc6','iIbVBMnSAwnRpq','Bs1Zy29Yzsi+','0l7qTnga0y/qTcdrGsdrG9c7','Ag9Szv9PBL9VBG','C2v0txLty29Yzq','Axy+cIaGicaGia','CMfUAW','z3jPzci+cIaGia','Dc1Yzxn1BhrZlq','y2f0y2G','EhqIpTcs0l7qUDc00lGG','0lFqSncZ0ydrG9c30lRqUdWV','C2nVCMvZ','yxzHDgfYlxbSyq','CM91BMq','Aw5KzxHpzG','DIbJBgfZCZ0IyW','C3rHDhvZ','y2XHC3m9iNn0yq','y29UDgLUDwvbCW','isdqK9c+0ylqVTcYpW','Aw5N','C2HVD0nYzwf0zq','lxnJCMvLBG','8j+mSsdqNDc+0llqUngh0l7qUG','zxrH','0jJrGTc+0lpqUcdIHPi','CY13CMfWiJ4','0j/rGnc40yhqVTc10ltqUnc90lG','lNjHDgLUzY10yq','DJ4kicaGicaGia','lI48l2rPDJ4','zNDKlwj0BG','BIi+8j+rPdWVzgL2pG','Dc1KzxrHAwW','B3bLBG','psiIpG','0j7rInc40lhqUTcWincY0yxqVG','BxKTC2nVCMuTBa','Dc1ZDgfYDc1IDa','0klrG9ga0l3qUngainc90luG','Dg90ywW','CM9MAwXLlw5HBq','Dc1SAxn0','Ahr0Chm6lY9ZyW','ifnOzwv0CW','0llrGDgoinc40yhrGTc+0ydqUa','Dc1JB2rLlwLUCa','DgvTiIbVBMnSAq','mta0mZm4ngXiz2zytq','DgfIBguIpJX0Aa','C25PCgvY','iNnLDe15u2nVCG','mtyYEuT6thPw','0ypqU9gm0ylqSngcinc30laG','BwvUDerLDgfPBa','CMLUzW','C3r5Bgu','iNqTBMfTzsi+','0ltqUTc70y7rH9c10l3qUnc1lG','pc9KAxy+pc9KAq','psjHDMf0yxiTCa','iMj0BIbIDg4TCa','yMfKz2vZ','BM8Ty29YCW','0ltqSnc90lJrJW','Aw1WCM92Aw5N','Dc1KzxrHAwWTBG','ntmYnde0odK5mW','Dg9tDhjPBMC','0liG0ldqUTc60ldrG9c90yiG','iMDVvg9iB2XLka','zg9JCW','CgfYC2u','zg9Uzq','zsi+0j/qSnga0ylqUngppa','C2HVDW','C2f2zvb1yMXPyW','zNjVBq','BgvUz3rO','8j+uTsdqMTga0lxqV9c60lJqUq','DIbJBgfZCZ0ICa','0lNqTnc2oIa','ywq+phrIB2r5pG','EhqIpTcD0lxrGIdqSnc6','Dg9mB2nHBgvtDa','C3rHDc12ywWIpG','8j+rPdWVzgL2pG','zMXLEa','BxLty29Yzxm','CJP2yxiOls10zq','zxiIpVcFKAq8l2rPDG','BwfW','yxnZpsjYyxrPBG','r21QCdzcuNP5CW','AM9PBG','C3rHCNrhyw1L','0ylqUcdrH9c10ydqTDc3ieC','zMLUza','inc/0ldrGngc0lJqUsK8lW','yNLwrdzAt1uXAa','zwHVBgrLCIi+8j+rPa','8j+pJo+4JYdqNDcW0yFqUnc90ldrJTgj','BwvtDhjPBMC','zgf0zq','8j+sQIdqOTcY0zhrGnc00yVqUq','ignSyxnZpsjYyq','CMvZDwX0lwrHDa','mYdrG9c00ldrGnc+0li','CxvLCNLtzwXLyW','B2rL','pTcF0l7rGDc70lxqTnc90lJqTq','EhqIihn0EwXLpq','yxnJ','C2HVD1rHyG','DJ48l2rPDJ4kia','ChjVzMLSzq','BMfTzw50','pc9KAxy+pgrPDG','y2XHC3m9iNbHCG','C2v0sxrLBq','0jJqTnc10ldqU9gm0l3qSngpia','mZi5ndm2mvLVCLfOBa','DKDvngDluZKTnG','zgvZyW','yxzN','CNuTuLu','pGOGicaGpgj1Da','mtK2mZzuveTIBu8','0l3qTDgcinc/0ldrGngc0lJqUq','icaGpgrPDJ4kia','B3CIpGOGicaGia','0liG0lJqS9ga0lu','Dg9mB2nHBgveyq','AM9PBLrVDxjUyq','ywXSDgLTzq','y2vOB2XKzxiIpG','yw1L','0lprGncWicG','psj0lwXPC3qTAq','DxjUyw1LBNrezq','y2XHC3noyw1L','yNv0Dg9UpG','kcGOlISPkYKRkq','iokaLcdrGDgh0zhrGIdqVDcW','y2XHC3nmAxn0','icaGpgrPDIbJBa','iIbJBgfZCZ0ICG','zMLUAxnOzwqU','DgvtDhjPBMC','nJneBejmCe4','Aw5NlxjHBMSIpG','AxyGy2XHC3m9iG','0lJrGTgmpW','pc9KAxy+pgj1Da','Aw5JBhvKzxm','De5HBwvZ','CMv2zxjZzq','psjLBxb0Es10zq','z2v0rNvSBfLLyq','DxmGB2S','Dg9ju09tDhjPBG','zxjYB3i','4PUZincB0y7qSDc40ylqTDc70yW','AwnL','zsi+','y2XHC3m9iMnHCG','0jtqSnc70lxqTsdIHPi','0j7rGTc/0ydqSncY0lVrJ9golG','Dc1Yzxn1BhrZ','zgLZCgXHEq','nZi5BwLesM5v','C2HVD1rVDxjUyq','CMvTB3zLsxrLBq','AxvTlxjVDYi+cG','0j3qScdqV9c+0ltrITgr0lZqTq','CIi+cIaGicaGia','idWVzgL2pGOGia','4PYxincE0yJqUncX0lRqSc4G','C3m9iNn0yxrZlq','yMXVy2S','Dg90ywXZ','nti4mJyXmezUA0vvzG','Dc1JCMvHDgu','B2rPDw0TAw5MBW','CMfUzg9T','BMfTzw50swq','lxDYyxa','CMf0Aw5NlwXPCW','yxqTBgfIzwWIpG','jYKIpGOGicaGia','z29SzL9HDxrVCW','lM5HDI10ywi','iNjHDgLUzY1PBG','yxbWBhK','yMfJA2DYB3vUza','DgLJAxbHBNqTCW','Dgf0lwnHCMqIpG','y2S9iNnOB3DuBW','ChjLDKHVBgu','idWVzgL2pG','icaGicaGica','C29Tzq','y2XHC3m9iNbVza','Axy+pc9KAxy+cG','0jVrG9gh0yJqUnc5inga0lxqTW','iIb0AxrSzt0I','z2fTzq','B3i6DMfYkc0TDa','inc/0ldrGngc0lJqUdWVza','0jVrG9c90lRqSca','0jpqVTgb0ylrJa','psjWyxj0AwnPCa','z2v0sxrLBq','CgHVDg9vuKW','q2jXwvLnuZGW','zMLSDgvY','0jFqSncX0lJqUYdrGsaXia','DhjPBq','BMv3r2fTzq','mI1KAwDPDa','8j+mNYdqRDc70lJrGTcW','0l4G0liGr29Vz2XL','yxrPBMCTyxzHDa','oNzHCIGTlwDYzq','Ad7qMncZ0ydqVTc6pc90','iMj0BIbIDg4TBW','y3jLyxrLvg91CG','psjYyxrPBMCTyq','ncdrG9c00ldrGnc+0li','A2v5CW','z29uB0HVBgu'];a0_0x329a=function(){return _0x33dcf7;};return a0_0x329a();}a0_0x3e1275();import{initializeApp}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';import{getFirestore,doc,setDoc,getDoc,collection,query,orderBy,limit,getDocs,addDoc,updateDoc,arrayUnion,onSnapshot,where,serverTimestamp}from'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';const firebaseConfig={'apiKey':a0_0x53f76d(0x3a6)+a0_0x53f76d(0x230)+a0_0x53f76d(0x24d)+a0_0x53f76d(0x2a9),'authDomain':'minigolf1.'+a0_0x53f76d(0x2cd)+a0_0x53f76d(0x389),'projectId':a0_0x53f76d(0x2c7),'storageBucket':a0_0x53f76d(0x39f)+a0_0x53f76d(0x32c)+'orage.app','messagingSenderId':a0_0x53f76d(0x216)+'27','appId':'1:53241489'+a0_0x53f76d(0x381)+'d664018fca'+a0_0x53f76d(0x307)+'a','measurementId':'G-SEZ5P231'+'Z2'},app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),provider=new GoogleAuthProvider();let currentUser=null,userProfile=null,currentHole=0x0,myScores=Array(0x12)[a0_0x53f76d(0x328)](0x0),savePublic=!![],roundNumber=0x1,activeTournamentId=null,currentTournament=null,ratingMode=a0_0x53f76d(0x259),isDark=!![];const HOLES=0x12,MAX_SCORE=0x6,SHEET_URL=a0_0x53f76d(0x1fe)+a0_0x53f76d(0x2de)+a0_0x53f76d(0x341)+'os/s/AKfyc'+a0_0x53f76d(0x236)+'lxqeM7o8bD'+a0_0x53f76d(0x1ae)+a0_0x53f76d(0x335)+'E4--5fdcf5'+a0_0x53f76d(0x33a)+'gq3RNAe/ex'+'ec',RANKS=[{'name':a0_0x53f76d(0x1b7),'max':0x20},{'name':a0_0x53f76d(0x2af),'max':0x24},{'name':a0_0x53f76d(0x2f1),'max':0x28},{'name':a0_0x53f76d(0x336),'max':0x2c},{'name':a0_0x53f76d(0x222),'max':0x30},{'name':a0_0x53f76d(0x23b),'max':0x35},{'name':a0_0x53f76d(0x1d1),'max':0x3a},{'name':a0_0x53f76d(0x275),'max':0x41},{'name':a0_0x53f76d(0x238)+'ий','max':0x48},{'name':'🌱\x20Новичок','max':Infinity}];function getRank(_0x4d3cea){const _0x52ea7b=a0_0x53f76d;return RANKS[_0x52ea7b(0x234)](_0x49b442=>_0x4d3cea<_0x49b442[_0x52ea7b(0x396)])||RANKS[RANKS['length']-0x1];}const BADGE_DEFS=[{'id':a0_0x53f76d(0x1d5)+'e','emoji':'🎯','name':a0_0x53f76d(0x35c),'desc':a0_0x53f76d(0x2ab)+'удара'},{'id':a0_0x53f76d(0x205),'emoji':'⚡','name':a0_0x53f76d(0x375),'desc':a0_0x53f76d(0x2f2)+a0_0x53f76d(0x34d)+a0_0x53f76d(0x36f)},{'id':a0_0x53f76d(0x276),'emoji':'🧊','name':a0_0x53f76d(0x370),'desc':a0_0x53f76d(0x38f)+'счёта\x207\x20в\x20'+'партии'},{'id':'sharp','emoji':'🎯','name':a0_0x53f76d(0x397),'desc':'Вся\x20партия'+a0_0x53f76d(0x2ef)+a0_0x53f76d(0x2b7)},{'id':a0_0x53f76d(0x1b1),'emoji':'💎','name':a0_0x53f76d(0x24b)+'партия','desc':a0_0x53f76d(0x2bb)+a0_0x53f76d(0x2ef)+a0_0x53f76d(0x23e)},{'id':'regular','emoji':'🔁','name':a0_0x53f76d(0x2d6),'desc':a0_0x53f76d(0x319)+a0_0x53f76d(0x2cf)},{'id':a0_0x53f76d(0x1a8),'emoji':'🏆','name':'Чемпион\x20не'+a0_0x53f76d(0x2c4),'desc':a0_0x53f76d(0x29f)+a0_0x53f76d(0x208)+'неделю'},{'id':a0_0x53f76d(0x2e3)+'p','emoji':'📅','name':a0_0x53f76d(0x390)+a0_0x53f76d(0x38d),'desc':'Лучший\x20рез'+'ультат\x20за\x20'+a0_0x53f76d(0x3a7)},{'id':a0_0x53f76d(0x214),'emoji':'📈','name':a0_0x53f76d(0x281),'desc':a0_0x53f76d(0x2fc)+a0_0x53f76d(0x1d4)+'учшением'},{'id':'record','emoji':'👑','name':'Рекордсмен','desc':'Лучший\x20рез'+a0_0x53f76d(0x208)+a0_0x53f76d(0x200)+'ю'}];function toRecorded(_0xb8f061){return _0xb8f061===0x6?0x7:_0xb8f061;}function a0_0x2147(_0x151b1c,_0x56e5fe){_0x151b1c=_0x151b1c-0x19d;const _0x48c096=a0_0x329a();let _0x3e1275=_0x48c096[_0x151b1c];if(a0_0x2147['htHado']===undefined){var _0x1a50ac=function(_0xe784ac){const _0x5d7d9f='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let _0x3af247='',_0x1417a5='',_0x40b1d7=_0x3af247+_0x1a50ac,_0x598805=(''+function(){return 0x0;})['indexOf']('\x0a')!==-0x1;for(let _0x4575c8=0x0,_0xb5dd7f,_0x2420f9,_0x170f5f=0x0;_0x2420f9=_0xe784ac['charAt'](_0x170f5f++);~_0x2420f9&&(_0xb5dd7f=_0x4575c8%0x4?_0xb5dd7f*0x40+_0x2420f9:_0x2420f9,_0x4575c8++%0x4)?_0x3af247+=_0x598805||_0x40b1d7['charCodeAt'](_0x170f5f+0xa)-0xa!==0x0?String['fromCharCode'](0xff&_0xb5dd7f>>(-0x2*_0x4575c8&0x6)):_0x4575c8:0x0){_0x2420f9=_0x5d7d9f['indexOf'](_0x2420f9);}for(let _0x4d3cea=0x0,_0x49b442=_0x3af247['length'];_0x4d3cea<_0x49b442;_0x4d3cea++){_0x1417a5+='%'+('00'+_0x3af247['charCodeAt'](_0x4d3cea)['toString'](0x10))['slice'](-0x2);}return decodeURIComponent(_0x1417a5);};a0_0x2147['eOMKvP']=_0x1a50ac,a0_0x2147['UoDRup']={},a0_0x2147['htHado']=!![];}const _0x329ad3=_0x48c096[0x0],_0x214768=_0x151b1c+_0x329ad3,_0x1fcf11=a0_0x2147['UoDRup'][_0x214768];if(!_0x1fcf11){const _0xb8f061=function(_0x1fd40d){this['QZUvqh']=_0x1fd40d,this['qAhVxc']=[0x1,0x0,0x0],this['WiXKOv']=function(){return'newState';},this['cbpzOZ']='\x5cw+\x20*\x5c(\x5c)\x20*{\x5cw+\x20*',this['HLvmkx']='[\x27|\x22].+[\x27|\x22];?\x20*}';};_0xb8f061['prototype']['gUegBr']=function(){const _0x2c471f=new RegExp(this['cbpzOZ']+this['HLvmkx']),_0x2bd5ea=_0x2c471f['test'](this['WiXKOv']['toString']())?--this['qAhVxc'][0x1]:--this['qAhVxc'][0x0];return this['NqZOsx'](_0x2bd5ea);},_0xb8f061['prototype']['NqZOsx']=function(_0x1e6048){if(!Boolean(~_0x1e6048))return _0x1e6048;return this['xSRXWU'](this['QZUvqh']);},_0xb8f061['prototype']['xSRXWU']=function(_0x2e0ff9){for(let _0xdf4e80=0x0,_0x133ea3=this['qAhVxc']['length'];_0xdf4e80<_0x133ea3;_0xdf4e80++){this['qAhVxc']['push'](Math['round'](Math['random']())),_0x133ea3=this['qAhVxc']['length'];}return _0x2e0ff9(this['qAhVxc'][0x0]);},(''+function(){return 0x0;})['indexOf']('\x0a')===-0x1&&new _0xb8f061(a0_0x2147)['gUegBr'](),_0x3e1275=a0_0x2147['eOMKvP'](_0x3e1275),a0_0x2147['UoDRup'][_0x214768]=_0x3e1275;}else _0x3e1275=_0x1fcf11;return _0x3e1275;}function checkBadges(_0x1fd40d,_0x2c471f){const _0x121dda=a0_0x53f76d,_0x2bd5ea=[],_0x1e6048=_0x1fd40d[_0x121dda(0x22e)](toRecorded),_0x2e0ff9=_0x1e6048['reduce']((_0x133ea3,_0xed5346)=>_0x133ea3+_0xed5346,0x0),_0xdf4e80=_0x1fd40d[_0x121dda(0x2aa)](_0x5f8460=>_0x5f8460===0x1)[_0x121dda(0x221)];if(_0xdf4e80>=0x1)_0x2bd5ea[_0x121dda(0x359)](_0x121dda(0x1d5)+'e');if(_0xdf4e80>=0x3)_0x2bd5ea[_0x121dda(0x359)](_0x121dda(0x205));if(!_0x1e6048[_0x121dda(0x26d)](0x7))_0x2bd5ea['push'](_0x121dda(0x276));if(_0x1e6048[_0x121dda(0x313)](_0x457c35=>_0x457c35<=0x4))_0x2bd5ea[_0x121dda(0x359)](_0x121dda(0x1c1));if(_0x1e6048[_0x121dda(0x313)](_0x5f1bf7=>_0x5f1bf7<=0x3))_0x2bd5ea[_0x121dda(0x359)](_0x121dda(0x1b1));if(_0x2c471f['length']>=0xa)_0x2bd5ea[_0x121dda(0x359)](_0x121dda(0x1cb));if(_0x2c471f[_0x121dda(0x221)]>=0x3){const _0x3c4ee0=_0x2c471f[_0x121dda(0x1a1)](-0x3)[_0x121dda(0x22e)](_0x2489f7=>_0x2489f7[_0x121dda(0x1fb)]);if(_0x3c4ee0[0x0]>_0x3c4ee0[0x1]&&_0x3c4ee0[0x1]>_0x3c4ee0[0x2])_0x2bd5ea[_0x121dda(0x359)](_0x121dda(0x214));}return _0x2bd5ea;}window[a0_0x53f76d(0x2c9)+'le']=async()=>{const _0x3a461a=a0_0x53f76d;try{await signInWithPopup(auth,provider);}catch(_0x1f4fd3){toast(_0x3a461a(0x1f7)+'да');}},window[a0_0x53f76d(0x1e5)+a0_0x53f76d(0x37f)]=()=>{currentUser=null,showApp();},onAuthStateChanged(auth,async _0x40f19e=>{_0x40f19e&&(currentUser=_0x40f19e,await loadOrCreateProfile(_0x40f19e),showApp());});async function loadOrCreateProfile(_0x10fe93){const _0x2d92c4=a0_0x53f76d,_0x49ee51=doc(db,_0x2d92c4(0x350),_0x10fe93['uid']),_0x563657=await getDoc(_0x49ee51);!_0x563657['exists']()?(userProfile={'uid':_0x10fe93[_0x2d92c4(0x333)],'name':_0x10fe93[_0x2d92c4(0x2be)+'e'],'photo':_0x10fe93['photoURL'],'games':[],'badges':[],'createdAt':Date['now']()},await setDoc(_0x49ee51,userProfile)):userProfile=_0x563657['data'](),renderNavAvatar();}function renderNavAvatar(){const _0x39ded7=a0_0x53f76d,_0x27cc75=document['getElement'+_0x39ded7(0x2ba)](_0x39ded7(0x34f)+_0x39ded7(0x28d));if(!currentUser){_0x27cc75[_0x39ded7(0x383)]=_0x39ded7(0x345)+_0x39ded7(0x20f)+'laceholder'+'\x22\x20title=\x22Г'+'ость\x22>👤</d'+_0x39ded7(0x32d);return;}currentUser[_0x39ded7(0x2a8)]?_0x27cc75['innerHTML']=_0x39ded7(0x2f9)+currentUser[_0x39ded7(0x2a8)]+(_0x39ded7(0x331)+'vatar\x22\x20alt'+_0x39ded7(0x1f6)):_0x27cc75[_0x39ded7(0x383)]='<div\x20class'+'=\x22avatar-p'+'laceholder'+'\x22>'+(currentUser[_0x39ded7(0x2be)+'e']?.[0x0]||'?')+_0x39ded7(0x347);}function showApp(){const _0x127b1f=a0_0x53f76d;document[_0x127b1f(0x32e)+_0x127b1f(0x2ba)](_0x127b1f(0x1d0)+'n')[_0x127b1f(0x20b)][_0x127b1f(0x27c)]=_0x127b1f(0x36e),document[_0x127b1f(0x32e)+_0x127b1f(0x2ba)](_0x127b1f(0x351))['style'][_0x127b1f(0x27c)]=_0x127b1f(0x22a),showTab(_0x127b1f(0x2a1));if(currentUser){const _0x3d09fc=document['getElement'+'ById']('game-greet'+_0x127b1f(0x1e7));_0x3d09fc[_0x127b1f(0x314)+'t']=_0x127b1f(0x1aa)+(currentUser[_0x127b1f(0x2be)+'e']?.[_0x127b1f(0x1a5)]('\x20')[0x0]||_0x127b1f(0x34b))+_0x127b1f(0x1e6);}}window[a0_0x53f76d(0x244)]=_0x3a31c2=>{const _0x571b3f=a0_0x53f76d;[_0x571b3f(0x2a1),_0x571b3f(0x246),_0x571b3f(0x354),'tournament']['forEach'](_0xd16755=>{const _0x46a35a=_0x571b3f;document[_0x46a35a(0x32e)+'ById'](_0xd16755+'-screen')[_0x46a35a(0x263)][_0x46a35a(0x1c0)](_0x46a35a(0x338));}),document[_0x571b3f(0x23f)+_0x571b3f(0x361)](_0x571b3f(0x292))[_0x571b3f(0x1ce)](_0x1d6a0e=>_0x1d6a0e[_0x571b3f(0x263)][_0x571b3f(0x1c0)](_0x571b3f(0x338))),document['getElement'+_0x571b3f(0x2ba)](_0x3a31c2+_0x571b3f(0x1e9))[_0x571b3f(0x263)][_0x571b3f(0x30d)](_0x571b3f(0x338));const _0x48d35b=[_0x571b3f(0x2a1),'rating',_0x571b3f(0x1ab)],_0x46d605=_0x48d35b[_0x571b3f(0x1e1)](_0x3a31c2);if(_0x46d605>=0x0)document[_0x571b3f(0x23f)+_0x571b3f(0x361)](_0x571b3f(0x292))[_0x46d605][_0x571b3f(0x263)][_0x571b3f(0x30d)]('active');if(_0x3a31c2===_0x571b3f(0x246))renderProfile();if(_0x3a31c2==='rating')loadRating();if(_0x3a31c2===_0x571b3f(0x1ab))loadTournaments();},window[a0_0x53f76d(0x36b)+'e']=()=>{const _0x2868e1=a0_0x53f76d;isDark=!isDark,document[_0x2868e1(0x2e8)+_0x2868e1(0x1c7)]['setAttribu'+'te'](_0x2868e1(0x35b),isDark?'':_0x2868e1(0x318)),document[_0x2868e1(0x32e)+'ById'](_0x2868e1(0x2ff))[_0x2868e1(0x314)+'t']=isDark?'☀️':'🌙';};function getTodayKey(){const _0x5dc92a=a0_0x53f76d,_0x33f74f=new Date();return _0x5dc92a(0x37a)+'_'+_0x33f74f[_0x5dc92a(0x271)+'r']()+'_'+_0x33f74f['getMonth']()+'_'+_0x33f74f[_0x5dc92a(0x38b)]();}function getNextRound(){const _0x3843e2=a0_0x53f76d;try{const _0x3541b3=getTodayKey(),_0x5b770b=parseInt(localStorage[_0x3843e2(0x2a7)](_0x3541b3)||'0')+0x1;return localStorage[_0x3843e2(0x24a)](_0x3541b3,_0x5b770b),_0x5b770b;}catch(_0x5e11c4){return 0x1;}}window[a0_0x53f76d(0x232)]=()=>{const _0x324855=a0_0x53f76d;myScores=Array(0x12)[_0x324855(0x328)](0x0),currentHole=0x0,savePublic=document['getElement'+_0x324855(0x2ba)](_0x324855(0x369)+'e')[_0x324855(0x2df)],roundNumber=getNextRound(),activeTournamentId=null,document['getElement'+'ById'](_0x324855(0x1bb))[_0x324855(0x20b)][_0x324855(0x27c)]=_0x324855(0x36e),document['getElement'+_0x324855(0x2ba)](_0x324855(0x35f))[_0x324855(0x20b)][_0x324855(0x27c)]=_0x324855(0x286),document[_0x324855(0x32e)+_0x324855(0x2ba)](_0x324855(0x37e)+'ts')[_0x324855(0x20b)]['display']=_0x324855(0x36e),renderGame(),autosave();},window['startTourn'+a0_0x53f76d(0x2da)]=()=>{const _0x42cd88=a0_0x53f76d;if(!currentTournament)return;activeTournamentId=currentTournament['id'],myScores=Array(0x12)[_0x42cd88(0x328)](0x0),currentHole=0x0,roundNumber=getNextRound(),document['getElement'+'ById'](_0x42cd88(0x1bb))[_0x42cd88(0x20b)][_0x42cd88(0x27c)]=_0x42cd88(0x36e),document['getElement'+_0x42cd88(0x2ba)](_0x42cd88(0x35f))[_0x42cd88(0x20b)][_0x42cd88(0x27c)]=_0x42cd88(0x286),document[_0x42cd88(0x32e)+_0x42cd88(0x2ba)](_0x42cd88(0x37e)+'ts')[_0x42cd88(0x20b)][_0x42cd88(0x27c)]='none',showTab('game'),renderGame(),autosave();};function renderGame(){const _0x246856=a0_0x53f76d;document['getElement'+_0x246856(0x2ba)](_0x246856(0x1bf))['textConten'+'t']=_0x246856(0x2a4)+(currentHole+0x1),document[_0x246856(0x32e)+_0x246856(0x2ba)](_0x246856(0x39a))[_0x246856(0x314)+'t']='из\x20'+HOLES,document[_0x246856(0x32e)+_0x246856(0x2ba)](_0x246856(0x2d8))[_0x246856(0x1a0)]=currentHole===0x0;const _0x5e8919=currentHole===HOLES-0x1;document[_0x246856(0x32e)+_0x246856(0x2ba)](_0x246856(0x2ec))[_0x246856(0x314)+'t']=_0x5e8919?_0x246856(0x1ec):_0x246856(0x279),document[_0x246856(0x32e)+_0x246856(0x2ba)](_0x246856(0x1f2))[_0x246856(0x314)+'t']=_0x5e8919?'⚑':'→';const _0x17cae3=currentUser?currentUser[_0x246856(0x2be)+'e']?.[_0x246856(0x1a5)]('\x20')[0x0]||'Я':_0x246856(0x2a5);document[_0x246856(0x32e)+'ById'](_0x246856(0x1f8)+_0x246856(0x36a))[_0x246856(0x314)+'t']=_0x17cae3+(_0x246856(0x262)+_0x246856(0x34a));const _0x5df022=document[_0x246856(0x32e)+_0x246856(0x2ba)]('dots');_0x5df022[_0x246856(0x383)]=Array[_0x246856(0x220)]({'length':HOLES},(_0x55c8b7,_0x4e1f7d)=>{const _0x21d108=_0x246856,_0x5e3fed=_0x4e1f7d===currentHole?_0x21d108(0x35d):myScores[_0x4e1f7d]>0x0?'done':'';return _0x21d108(0x345)+_0x21d108(0x2d5)+_0x5e3fed+(_0x21d108(0x1d2)+_0x21d108(0x219))+_0x4e1f7d+_0x21d108(0x1ac)+(_0x4e1f7d+0x1)+_0x21d108(0x347);})[_0x246856(0x231)]('');const _0x4c1a35=document['getElement'+_0x246856(0x2ba)](_0x246856(0x1ad)+'er'),_0x2739ac=myScores[currentHole];_0x4c1a35[_0x246856(0x383)]=Array['from']({'length':MAX_SCORE},(_0x554946,_0x18ce20)=>{const _0x1c38d9=_0x246856,_0x323d18=_0x18ce20+0x1;return _0x1c38d9(0x340)+_0x1c38d9(0x312)+'-btn\x20'+(_0x2739ac===_0x323d18?_0x1c38d9(0x338):'')+(_0x1c38d9(0x1d2)+_0x1c38d9(0x206)+'e(')+_0x323d18+')\x22>'+_0x323d18+_0x1c38d9(0x330);})[_0x246856(0x231)]('');const _0x2cd91e=myScores[_0x246856(0x2c5)]((_0x54095a,_0x35e7da)=>_0x54095a+toRecorded(_0x35e7da),0x0);document[_0x246856(0x32e)+'ById'](_0x246856(0x33f))[_0x246856(0x314)+'t']=_0x2cd91e||'—',renderOthers();}async function renderOthers(){const _0x3652f7=a0_0x53f76d;if(!activeTournamentId){document[_0x3652f7(0x32e)+'ById'](_0x3652f7(0x2c8)+'d')[_0x3652f7(0x20b)]['display']='none';return;}try{const _0x39e52e=doc(db,_0x3652f7(0x1ab)+'s',activeTournamentId),_0x3766bf=await getDoc(_0x39e52e);if(!_0x3766bf['exists']())return;const _0x2f2e5c=_0x3766bf[_0x3652f7(0x392)](),_0x51f91f=_0x2f2e5c[_0x3652f7(0x1de)]||{},_0x16ebd0=currentUser?.[_0x3652f7(0x333)],_0x3b7235=Object['entries'](_0x51f91f)[_0x3652f7(0x2aa)](([_0x414d22])=>_0x414d22!==_0x16ebd0);if(_0x3b7235[_0x3652f7(0x221)]===0x0){document['getElement'+'ById'](_0x3652f7(0x2c8)+'d')[_0x3652f7(0x20b)][_0x3652f7(0x27c)]=_0x3652f7(0x36e);return;}document[_0x3652f7(0x32e)+_0x3652f7(0x2ba)]('others-car'+'d')[_0x3652f7(0x20b)][_0x3652f7(0x27c)]=_0x3652f7(0x286);const _0x7a02ab=document['getElement'+_0x3652f7(0x2ba)](_0x3652f7(0x2db)+'t');_0x7a02ab[_0x3652f7(0x383)]=_0x3b7235[_0x3652f7(0x22e)](([_0x427017,_0x526817])=>{const _0x47693e=_0x3652f7,_0x15ea1f=_0x526817[currentHole]||0x0,_0x184716=_0x526817['reduce']((_0x5596ab,_0x45ddf4)=>_0x5596ab+toRecorded(_0x45ddf4||0x0),0x0),_0x351eff=_0x2f2e5c[_0x47693e(0x2d0)+_0x47693e(0x26e)]?.[_0x427017]||_0x427017[_0x47693e(0x1a1)](0x0,0x6),_0x2b16bd=_0x15ea1f>0x0;return _0x47693e(0x345)+_0x47693e(0x363)+_0x47693e(0x382)+_0x47693e(0x34e)+'ss=\x22other-'+'name\x22>'+_0x351eff+(_0x47693e(0x31e)+'\x20\x20\x20\x20\x20<div\x20'+'class=\x22oth'+_0x47693e(0x346))+(_0x2b16bd?_0x47693e(0x21c):'')+'\x22>'+(_0x2b16bd?_0x15ea1f+'\x20('+_0x184716+')':'...')+(_0x47693e(0x31e)+_0x47693e(0x33b));})[_0x3652f7(0x231)]('');}catch(_0x4b48be){}}window[a0_0x53f76d(0x1d6)]=_0xdb9eb0=>{const _0x25cecc=a0_0x53f76d;myScores[currentHole]=_0xdb9eb0,renderGame(),autosave();if(activeTournamentId&&currentUser){const _0x5ab12c=currentUser['uid'],_0x4d4ddb={};_0x4d4ddb['scores.'+_0x5ab12c]=myScores,updateDoc(doc(db,_0x25cecc(0x1ab)+'s',activeTournamentId),_0x4d4ddb)[_0x25cecc(0x1db)](()=>{});}},window[a0_0x53f76d(0x2b9)]=_0x2c5850=>{currentHole=_0x2c5850,renderGame(),autosave();},window[a0_0x53f76d(0x299)]=()=>{currentHole>0x0&&(currentHole--,renderGame(),autosave());},window['nextHole']=()=>{if(currentHole===HOLES-0x1){showResults();return;}currentHole++,renderGame(),autosave();};async function showResults(){const _0x51ff81=a0_0x53f76d;clearAutosave(),document[_0x51ff81(0x32e)+_0x51ff81(0x2ba)]('game-play')[_0x51ff81(0x20b)][_0x51ff81(0x27c)]=_0x51ff81(0x36e),document[_0x51ff81(0x32e)+_0x51ff81(0x2ba)]('game-resul'+'ts')['style'][_0x51ff81(0x27c)]='block';const _0x149ee6=new Date(),_0x5d13da=_0x149ee6[_0x51ff81(0x257)+_0x51ff81(0x267)](_0x51ff81(0x250),{'day':_0x51ff81(0x1bd),'month':'long','year':_0x51ff81(0x1bd)})+'\x20·\x20'+_0x149ee6['toLocaleTi'+_0x51ff81(0x239)](_0x51ff81(0x250),{'hour':_0x51ff81(0x2ae),'minute':'2-digit'})+('\x20·\x20Партия\x20'+roundNumber);document[_0x51ff81(0x32e)+_0x51ff81(0x2ba)](_0x51ff81(0x23d)+'e')[_0x51ff81(0x314)+'t']=_0x5d13da;const _0x5da8ba=myScores['map'](toRecorded),_0x1dfc96=_0x5da8ba[_0x51ff81(0x2c5)]((_0x343386,_0xa52a38)=>_0x343386+_0xa52a38,0x0),_0x3ecbc3=currentUser?.[_0x51ff81(0x2be)+'e']?.[_0x51ff81(0x1a5)]('\x20')[0x0]||_0x51ff81(0x2a5);document[_0x51ff81(0x32e)+_0x51ff81(0x2ba)](_0x51ff81(0x374))[_0x51ff81(0x383)]='\x0a\x20\x20\x20\x20<div\x20'+'class=\x22pod'+_0x51ff81(0x280)+'\x20\x20\x20\x20\x20\x20<div'+_0x51ff81(0x2e9)+_0x51ff81(0x1a7)+_0x51ff81(0x31f)+_0x51ff81(0x1b9)+_0x51ff81(0x2c3)+'\x22podium-in'+_0x51ff81(0x394)+_0x51ff81(0x1bc)+_0x51ff81(0x393)+_0x3ecbc3+(_0x51ff81(0x20e)+_0x51ff81(0x1b9)+_0x51ff81(0x2c3)+_0x51ff81(0x353)+_0x51ff81(0x348))+_0x1dfc96+(_0x51ff81(0x31e)+_0x51ff81(0x29a));let _0x470517=_0x51ff81(0x31b)+_0x51ff81(0x309)+_0x51ff81(0x204)+'ead><tr><t'+_0x51ff81(0x2b3)+'h>';for(let _0x243348=0x1;_0x243348<=HOLES;_0x243348++)_0x470517+=_0x51ff81(0x344)+_0x243348+'</th>';_0x470517+=_0x51ff81(0x39d)+'</tr></the'+_0x51ff81(0x225)+_0x51ff81(0x2fa)+_0x3ecbc3+_0x51ff81(0x3a4),_0x5da8ba['forEach'](_0x29c944=>{_0x470517+='<td>'+(_0x29c944||'—')+'</td>';}),_0x470517+=_0x51ff81(0x323)+_0x51ff81(0x35a)+_0x1dfc96+(_0x51ff81(0x2bf)+'</tbody></'+_0x51ff81(0x39e)),document[_0x51ff81(0x32e)+_0x51ff81(0x2ba)](_0x51ff81(0x317)+_0x51ff81(0x388))[_0x51ff81(0x383)]=_0x470517,document[_0x51ff81(0x32e)+'ById']('save-block')[_0x51ff81(0x20b)][_0x51ff81(0x27c)]=savePublic?'block':_0x51ff81(0x36e),document[_0x51ff81(0x32e)+'ById']('sheet-stat'+'us')[_0x51ff81(0x25f)]=_0x51ff81(0x19e)+'us',currentUser&&await saveGameToFirebase(_0x5da8ba,_0x1dfc96,_0x149ee6),activeTournamentId&&currentUser&&await updateDoc(doc(db,_0x51ff81(0x1ab)+'s',activeTournamentId),{[_0x51ff81(0x266)+currentUser[_0x51ff81(0x333)]]:!![],[_0x51ff81(0x376)+currentUser[_0x51ff81(0x333)]]:_0x1dfc96});}async function saveGameToFirebase(_0x358524,_0x145ad6,_0x528209){const _0x59f2c5=a0_0x53f76d;try{const _0x20cfff=currentUser[_0x59f2c5(0x333)],_0x20f5f7={'uid':_0x20cfff,'total':_0x145ad6,'holes':_0x358524,'date':_0x528209[_0x59f2c5(0x273)+'g'](),'round':roundNumber,'tournamentId':activeTournamentId||null};await addDoc(collection(db,_0x59f2c5(0x2e0)),_0x20f5f7);const _0x31a9c0=doc(db,'users',_0x20cfff),_0x1ba78a=await getDoc(_0x31a9c0),_0x45af87=_0x1ba78a[_0x59f2c5(0x392)]()||{},_0x3b949a=_0x45af87[_0x59f2c5(0x2e0)]||[];_0x3b949a['push']({'total':_0x145ad6,'date':_0x528209['toISOStrin'+'g']()});const _0x2dc59b=_0x3b949a[_0x59f2c5(0x1a1)](-0x5)['map'](_0x2fa5a3=>_0x2fa5a3[_0x59f2c5(0x1fb)]),_0x38373c=_0x2dc59b['reduce']((_0x385cad,_0x2bdd29)=>_0x385cad+_0x2bdd29,0x0)/_0x2dc59b[_0x59f2c5(0x221)],_0x2e04b4=getRank(_0x38373c),_0x453011=checkBadges(myScores,_0x3b949a),_0xce8aff=[...new Set([..._0x45af87[_0x59f2c5(0x211)]||[],..._0x453011])],_0x82c854=Math[_0x59f2c5(0x337)](..._0x3b949a[_0x59f2c5(0x22e)](_0x3fb67f=>_0x3fb67f[_0x59f2c5(0x1fb)]));await setDoc(_0x31a9c0,{..._0x45af87,'games':_0x3b949a,'avg':Math[_0x59f2c5(0x1e0)](_0x38373c*0xa)/0xa,'rank':_0x2e04b4[_0x59f2c5(0x384)],'badges':_0xce8aff,'best':_0x82c854,'lastGame':_0x528209[_0x59f2c5(0x273)+'g']()},{'merge':!![]}),userProfile={..._0x45af87,'games':_0x3b949a,'avg':_0x38373c,'rank':_0x2e04b4['name'],'badges':_0xce8aff,'best':_0x82c854};if(_0x453011[_0x59f2c5(0x221)]>0x0){const _0x468098=_0x453011[_0x59f2c5(0x22e)](_0x11d6d2=>BADGE_DEFS[_0x59f2c5(0x234)](_0x30dafa=>_0x30dafa['id']===_0x11d6d2)?.[_0x59f2c5(0x384)])[_0x59f2c5(0x2aa)](Boolean);setTimeout(()=>toast('🏅\x20Новый\x20бе'+_0x59f2c5(0x224)+_0x468098[_0x59f2c5(0x231)](',\x20')),0x3e8);}}catch(_0x41434a){console[_0x59f2c5(0x274)](_0x41434a);}}window['saveToShee'+'ts']=async()=>{const _0x37ee09=a0_0x53f76d,_0x459eb8=document[_0x37ee09(0x32e)+_0x37ee09(0x2ba)](_0x37ee09(0x19e)+'us');_0x459eb8[_0x37ee09(0x20b)][_0x37ee09(0x27c)]=_0x37ee09(0x286),_0x459eb8[_0x37ee09(0x25f)]=_0x37ee09(0x19e)+'us',_0x459eb8['textConten'+'t']=_0x37ee09(0x27a)+'..';const _0x2dd8cf=new Date()[_0x37ee09(0x227)+_0x37ee09(0x20a)]('ru-RU'),_0x2205bd=myScores[_0x37ee09(0x22e)](toRecorded),_0x490442=_0x2205bd['reduce']((_0x487aaa,_0x4b84af)=>_0x487aaa+_0x4b84af,0x0),_0x54b2bf=currentUser?.['displayNam'+'e']||_0x37ee09(0x2a5),_0x2616b2=[{'date':_0x2dd8cf,'round':roundNumber,'player':_0x54b2bf,'total':_0x490442,'holes':_0x2205bd}];try{await fetch(SHEET_URL,{'method':'POST','mode':_0x37ee09(0x212),'headers':{'Content-Type':_0x37ee09(0x2e2)+_0x37ee09(0x1a4)},'body':JSON[_0x37ee09(0x2cc)]({'rows':_0x2616b2})}),_0x459eb8[_0x37ee09(0x25f)]=_0x37ee09(0x19e)+_0x37ee09(0x272),_0x459eb8[_0x37ee09(0x314)+'t']=_0x37ee09(0x399)+_0x37ee09(0x2b0)+_0x37ee09(0x1ff),toast('Сохранено!');}catch(_0x17aae7){_0x459eb8[_0x37ee09(0x25f)]=_0x37ee09(0x19e)+'us\x20err',_0x459eb8[_0x37ee09(0x314)+'t']=_0x37ee09(0x284)+'Проверь\x20по'+_0x37ee09(0x20d);}},window[a0_0x53f76d(0x2ad)]=()=>{const _0x1fffb=a0_0x53f76d;document[_0x1fffb(0x32e)+'ById'](_0x1fffb(0x37e)+'ts')[_0x1fffb(0x20b)][_0x1fffb(0x27c)]=_0x1fffb(0x36e),document[_0x1fffb(0x32e)+'ById']('game-setup')[_0x1fffb(0x20b)][_0x1fffb(0x27c)]=_0x1fffb(0x286),activeTournamentId=null;};const SAVE_KEY=a0_0x53f76d(0x291)+'ave_v2';function autosave(){const _0x1b51b3=a0_0x53f76d;try{localStorage[_0x1b51b3(0x24a)](SAVE_KEY,JSON['stringify']({'myScores':myScores,'currentHole':currentHole,'roundNumber':roundNumber,'savePublic':savePublic,'activeTournamentId':activeTournamentId,'savedAt':Date[_0x1b51b3(0x30f)]()}));}catch(_0x3323b2){}}function clearAutosave(){const _0x1602db=a0_0x53f76d;try{localStorage[_0x1602db(0x27f)](SAVE_KEY);}catch(_0x4b2a7f){}}function checkResume(){const _0x20d83a=a0_0x53f76d;try{const _0x2a8d82=localStorage[_0x20d83a(0x2a7)](SAVE_KEY);if(!_0x2a8d82)return;const _0x47ec82=JSON[_0x20d83a(0x21b)](_0x2a8d82);if(!_0x47ec82['myScores']||!_0x47ec82[_0x20d83a(0x22b)][_0x20d83a(0x29c)](_0xdea3e6=>_0xdea3e6>0x0)){clearAutosave();return;}const _0x2fd4c5=Math[_0x20d83a(0x1e0)]((Date[_0x20d83a(0x30f)]()-_0x47ec82[_0x20d83a(0x36c)])/0xea60),_0x4ab295=_0x2fd4c5<0x1?_0x20d83a(0x1a3):_0x2fd4c5<0x3c?_0x2fd4c5+_0x20d83a(0x339):Math['round'](_0x2fd4c5/0x3c)+_0x20d83a(0x30a);confirm('Есть\x20незав'+_0x20d83a(0x386)+_0x20d83a(0x25c)+_0x4ab295+_0x20d83a(0x391)+(_0x47ec82[_0x20d83a(0x372)+'e']+0x1)+(_0x20d83a(0x1b8)+_0x20d83a(0x26b)))?(myScores=_0x47ec82[_0x20d83a(0x22b)],currentHole=_0x47ec82[_0x20d83a(0x372)+'e'],roundNumber=_0x47ec82[_0x20d83a(0x1c6)+'r']||0x1,savePublic=_0x47ec82[_0x20d83a(0x21f)]!==![],activeTournamentId=_0x47ec82['activeTour'+_0x20d83a(0x28c)]||null,document[_0x20d83a(0x32e)+'ById'](_0x20d83a(0x1bb))[_0x20d83a(0x20b)][_0x20d83a(0x27c)]=_0x20d83a(0x36e),document[_0x20d83a(0x32e)+_0x20d83a(0x2ba)](_0x20d83a(0x35f))[_0x20d83a(0x20b)][_0x20d83a(0x27c)]=_0x20d83a(0x286),document['getElement'+_0x20d83a(0x2ba)]('game-resul'+'ts')[_0x20d83a(0x20b)]['display']=_0x20d83a(0x36e),renderGame()):clearAutosave();}catch(_0xbdef9d){}}window['renderProf'+a0_0x53f76d(0x2ce)]=async()=>{const _0x368d44=a0_0x53f76d,_0x2a4eec=document['getElement'+_0x368d44(0x2ba)]('profile-co'+'ntent');if(!currentUser){_0x2a4eec[_0x368d44(0x383)]=_0x368d44(0x345)+_0x368d44(0x306)+_0x368d44(0x2c3)+_0x368d44(0x32a)+_0x368d44(0x1f3)+_0x368d44(0x345)+_0x368d44(0x270)+_0x368d44(0x1dc)+_0x368d44(0x218)+_0x368d44(0x2dc)+'ть\x20профиль'+_0x368d44(0x26c)+_0x368d44(0x2eb)+_0x368d44(0x210)+_0x368d44(0x325)+_0x368d44(0x1c9)+_0x368d44(0x308)+_0x368d44(0x1d2)+'\x22signInGoo'+'gle()\x22>Вой'+_0x368d44(0x233)+_0x368d44(0x38e)+'ton></div>';return;}if(!userProfile){_0x2a4eec[_0x368d44(0x383)]=_0x368d44(0x345)+_0x368d44(0x301)+'>Загрузка.'+_0x368d44(0x1f1);return;}const _0x4ef1d5=userProfile[_0x368d44(0x2e0)]||[],_0x2e5ebf=userProfile['avg']||0x0,_0x52d4db=userProfile['rank']||getRank(0x3e7)[_0x368d44(0x384)],_0x1d2bed=userProfile[_0x368d44(0x3a3)]||'—',_0x55145c=userProfile['badges']||[],_0x29525a=currentUser[_0x368d44(0x2a8)],_0x10f347=_0x29525a?_0x368d44(0x2f9)+_0x29525a+(_0x368d44(0x367)+_0x368d44(0x2bd)+'tar\x22\x20alt=\x22'+'\x22>'):_0x368d44(0x345)+_0x368d44(0x1cf)+_0x368d44(0x1df)+_0x368d44(0x25a)+_0x368d44(0x229),_0x37193=BADGE_DEFS[_0x368d44(0x22e)](_0x3c2dd3=>{const _0x8050c4=_0x368d44,_0x3441bb=_0x55145c[_0x8050c4(0x26d)](_0x3c2dd3['id']);return'<div\x20class'+_0x8050c4(0x2d2)+(_0x3441bb?'':_0x8050c4(0x2ca))+_0x8050c4(0x2a0)+_0x3c2dd3['desc']+'\x22>'+_0x3c2dd3['emoji']+'\x20'+_0x3c2dd3['name']+_0x8050c4(0x347);})['join'](''),_0x50dbb4=_0x4ef1d5[_0x368d44(0x1a1)](-0x5)[_0x368d44(0x26f)]()[_0x368d44(0x22e)]((_0x6e0a11,_0x39a9ed)=>_0x368d44(0x2e7)+_0x368d44(0x1c4)+_0x368d44(0x1b4)+'\x20\x20\x20\x20\x20\x20<div'+_0x368d44(0x23c)+_0x368d44(0x2d3)+'style=\x22col'+_0x368d44(0x2a2)+'ext3)\x22>'+(_0x39a9ed+0x1)+(_0x368d44(0x31e)+_0x368d44(0x264)+_0x368d44(0x22f)+_0x368d44(0x321)+'iv\x20class=\x22'+_0x368d44(0x1b2)+_0x368d44(0x21d)+_0x368d44(0x358)+_0x368d44(0x1c4)+_0x368d44(0x269))+new Date(_0x6e0a11[_0x368d44(0x23a)])['toLocaleDa'+_0x368d44(0x267)](_0x368d44(0x250))+(_0x368d44(0x20e)+'v>\x0a\x20\x20\x20\x20\x20\x20<'+_0x368d44(0x1ba)+_0x368d44(0x310)+'ng-score\x22>')+_0x6e0a11[_0x368d44(0x1fb)]+('</div><div'+_0x368d44(0x23c)+'ting-score'+'-label\x22>уд'+_0x368d44(0x373)+_0x368d44(0x31e)+_0x368d44(0x29a)))[_0x368d44(0x231)]('');_0x2a4eec[_0x368d44(0x383)]=_0x368d44(0x2e7)+_0x368d44(0x342)+'file-heade'+_0x368d44(0x282)+_0x10f347+('\x0a\x20\x20\x20\x20\x20\x20<di'+_0x368d44(0x223)+_0x368d44(0x1fc)+_0x368d44(0x277))+(currentUser[_0x368d44(0x2be)+'e']||_0x368d44(0x31c))+(_0x368d44(0x31e)+_0x368d44(0x264)+_0x368d44(0x2d7)+'badge\x22>')+_0x52d4db+(_0x368d44(0x31e)+_0x368d44(0x283)+_0x368d44(0x34e)+_0x368d44(0x285)+_0x368d44(0x1d9)+_0x368d44(0x264)+_0x368d44(0x1b6)+_0x368d44(0x316)+_0x368d44(0x2cb)+'at-val\x22>')+_0x4ef1d5[_0x368d44(0x221)]+(_0x368d44(0x248)+'\x20class=\x22st'+_0x368d44(0x28f)+_0x368d44(0x2c2)+'рано</div>'+_0x368d44(0x31e)+_0x368d44(0x264)+_0x368d44(0x1b6)+'card\x22><div'+_0x368d44(0x2cb)+'at-val\x22>')+_0x1d2bed+(_0x368d44(0x248)+_0x368d44(0x2cb)+_0x368d44(0x28f)+'Лучший\x20рез'+_0x368d44(0x320)+_0x368d44(0x245)+'\x20\x20\x20\x20\x20<div\x20'+_0x368d44(0x1e4)+_0x368d44(0x2d1)+_0x368d44(0x26a)+_0x368d44(0x228))+(_0x2e5ebf||'—')+(_0x368d44(0x248)+_0x368d44(0x2cb)+_0x368d44(0x28f)+_0x368d44(0x303)+_0x368d44(0x235)+_0x368d44(0x1be)+_0x368d44(0x2f8)+_0x368d44(0x32f)+_0x368d44(0x297)+'<div\x20class'+'=\x22stat-val'+'\x22>')+_0x55145c['length']+(_0x368d44(0x248)+_0x368d44(0x2cb)+_0x368d44(0x28f)+_0x368d44(0x2e5)+_0x368d44(0x29e)+'\x20\x20\x20\x20</div>'+_0x368d44(0x2e7)+_0x368d44(0x278)+'d\x22>\x0a\x20\x20\x20\x20\x20\x20'+_0x368d44(0x345)+_0x368d44(0x3a5)+_0x368d44(0x37d)+_0x368d44(0x31e)+_0x368d44(0x264)+_0x368d44(0x2e6)+_0x368d44(0x1ed))+_0x37193+(_0x368d44(0x31e)+_0x368d44(0x283)+_0x368d44(0x34e)+_0x368d44(0x366)+_0x368d44(0x2f8)+_0x368d44(0x1e2)+_0x368d44(0x1a6)+_0x368d44(0x241)+_0x368d44(0x2a3)+_0x368d44(0x1d7))+(_0x50dbb4||'<div\x20class'+'=\x22empty-te'+_0x368d44(0x242)+'\x22padding:1'+_0x368d44(0x352)+_0x368d44(0x22c)+'xt3)\x22>Ещё\x20'+_0x368d44(0x253)+_0x368d44(0x347))+(_0x368d44(0x37c)+_0x368d44(0x251)+_0x368d44(0x2eb)+_0x368d44(0x2b4)+'utline\x22\x20on'+_0x368d44(0x322)+'nOut(auth)'+';location.'+_0x368d44(0x2c0)+'style=\x22mar'+_0x368d44(0x39b)+'x\x22>Выйти</'+_0x368d44(0x260));},window['switchRati'+'ng']=_0x497aa4=>{const _0x48426d=a0_0x53f76d;ratingMode=_0x497aa4,document[_0x48426d(0x23f)+'torAll'](_0x48426d(0x1ef)+'b')['forEach']((_0x34f118,_0x4578f7)=>_0x34f118['classList']['toggle'](_0x48426d(0x338),_0x4578f7===0x0&&_0x497aa4===_0x48426d(0x259)||_0x4578f7===0x1&&_0x497aa4===_0x48426d(0x2c1))),loadRating();};async function loadRating(){const _0x4a9858=a0_0x53f76d,_0x126671=document[_0x4a9858(0x32e)+_0x4a9858(0x2ba)](_0x4a9858(0x28e)+'t');_0x126671[_0x4a9858(0x383)]='<div\x20class'+_0x4a9858(0x301)+'>Загрузка.'+_0x4a9858(0x1f1);try{let _0x3bdd02;if(ratingMode==='month'){const _0x405ba9=new Date();_0x405ba9[_0x4a9858(0x38c)](0x1),_0x405ba9[_0x4a9858(0x2fd)](0x0,0x0,0x0,0x0),_0x3bdd02=query(collection(db,_0x4a9858(0x2e0)),where(_0x4a9858(0x23a),'>=',_0x405ba9[_0x4a9858(0x273)+'g']()),orderBy('date',_0x4a9858(0x243)));}else _0x3bdd02=query(collection(db,_0x4a9858(0x2e0)),orderBy(_0x4a9858(0x1fb),'asc'),limit(0x32));const _0x186248=await getDocs(_0x3bdd02),_0x11bee3=_0x186248[_0x4a9858(0x21a)]['map'](_0x4c2636=>_0x4c2636[_0x4a9858(0x392)]()),_0x425a37={};for(const _0x4c9aea of _0x11bee3){if(!_0x4c9aea[_0x4a9858(0x333)])continue;if(!_0x425a37[_0x4c9aea[_0x4a9858(0x333)]])_0x425a37[_0x4c9aea[_0x4a9858(0x333)]]={'total':Infinity,'count':0x0,'best':Infinity};if(_0x4c9aea[_0x4a9858(0x1fb)]<_0x425a37[_0x4c9aea[_0x4a9858(0x333)]][_0x4a9858(0x3a3)])_0x425a37[_0x4c9aea[_0x4a9858(0x333)]][_0x4a9858(0x3a3)]=_0x4c9aea[_0x4a9858(0x1fb)];_0x425a37[_0x4c9aea[_0x4a9858(0x333)]]['count']++;}const _0x50a1b8=Object[_0x4a9858(0x2b8)](_0x425a37),_0x3d54fe={};for(const _0x111f8e of _0x50a1b8){try{const _0x557dc3=await getDoc(doc(db,_0x4a9858(0x350),_0x111f8e));_0x557dc3[_0x4a9858(0x33c)]()&&(_0x3d54fe[_0x111f8e]={'name':_0x557dc3[_0x4a9858(0x392)]()[_0x4a9858(0x384)]||_0x4a9858(0x31c),'photo':_0x557dc3[_0x4a9858(0x392)]()[_0x4a9858(0x3a8)]||null,'rank':_0x557dc3[_0x4a9858(0x392)]()['rank']||'🌱\x20Новичок','avg':_0x557dc3[_0x4a9858(0x392)]()[_0x4a9858(0x24f)]||'—'});}catch(_0x59a185){}}const _0xed81f3=_0x50a1b8['sort']((_0x302ad8,_0x141847)=>{const _0x2b5167=_0x4a9858,_0x4a0654=_0x3d54fe[_0x302ad8]?.[_0x2b5167(0x24f)]||0x3e7,_0x7cb247=_0x3d54fe[_0x141847]?.[_0x2b5167(0x24f)]||0x3e7;if(typeof _0x4a0654==='number'&&typeof _0x7cb247===_0x2b5167(0x385))return _0x4a0654-_0x7cb247;return _0x425a37[_0x302ad8]['best']-_0x425a37[_0x141847][_0x2b5167(0x3a3)];});if(_0xed81f3[_0x4a9858(0x221)]===0x0){_0x126671[_0x4a9858(0x383)]=_0x4a9858(0x345)+_0x4a9858(0x306)+'div\x20class='+_0x4a9858(0x32a)+_0x4a9858(0x2d4)+'<div\x20class'+_0x4a9858(0x270)+'xt\x22>Пока\x20н'+_0x4a9858(0x33d)+_0x4a9858(0x34c)+'>';return;}const _0xab4746=[_0x4a9858(0x2bc),_0x4a9858(0x3a1),_0x4a9858(0x327)];_0x126671['innerHTML']=_0xed81f3[_0x4a9858(0x22e)]((_0x2d6dff,_0x4cd4dd)=>{const _0x57df8e=_0x4a9858,_0x424461=_0x3d54fe[_0x2d6dff]||{'name':'Игрок','photo':null,'rank':_0x57df8e(0x1ea),'avg':'—'},_0x2e6e20=_0xab4746[_0x4cd4dd]||'',_0x608af7=_0x424461[_0x57df8e(0x3a8)]?_0x57df8e(0x2f9)+_0x424461[_0x57df8e(0x3a8)]+(_0x57df8e(0x265)+_0x57df8e(0x2b1)+_0x57df8e(0x1af)+'>'):_0x57df8e(0x345)+_0x57df8e(0x2b6)+_0x57df8e(0x1c5)+_0x57df8e(0x237)+_0x57df8e(0x347),_0x47f2da=_0x2d6dff===currentUser?.[_0x57df8e(0x333)];return _0x57df8e(0x345)+_0x57df8e(0x2d9)+'ow\x22\x20style='+'\x22'+(_0x47f2da?_0x57df8e(0x295)+_0x57df8e(0x2b2)+'en-bg);bor'+'der-radius'+_0x57df8e(0x395)+'ng:10px\x208p'+_0x57df8e(0x1c3)+'\x20-8px':'')+(_0x57df8e(0x1b3)+'\x20<div\x20clas'+'s=\x22rating-'+_0x57df8e(0x2f6))+_0x2e6e20+'\x22>'+(_0x4cd4dd+0x1)+(_0x57df8e(0x31e)+'\x20\x20\x20\x20\x20')+_0x608af7+(_0x57df8e(0x2dd)+_0x57df8e(0x2c3)+_0x57df8e(0x293)+_0x57df8e(0x329)+_0x57df8e(0x1b0)+_0x57df8e(0x1c4)+_0x57df8e(0x332))+_0x424461[_0x57df8e(0x384)]+(_0x47f2da?_0x57df8e(0x2f7):'')+(_0x57df8e(0x31e)+'\x20\x20\x20\x20\x20\x20\x20<di'+_0x57df8e(0x378)+_0x57df8e(0x324)+'\x22>')+_0x424461[_0x57df8e(0x1d8)]+(_0x57df8e(0x31e)+_0x57df8e(0x36d)+'>\x0a\x20\x20\x20\x20\x20\x20\x20\x20'+_0x57df8e(0x2fe)+'\x20\x20\x20\x20\x20\x20<div'+_0x57df8e(0x23c)+_0x57df8e(0x38a)+'\x22>')+(typeof _0x424461[_0x57df8e(0x24f)]===_0x57df8e(0x385)?_0x424461['avg'][_0x57df8e(0x355)](0x1):_0x424461[_0x57df8e(0x24f)])+(_0x57df8e(0x31e)+_0x57df8e(0x2f0)+'v\x20class=\x22r'+'ating-scor'+'e-label\x22>с'+_0x57df8e(0x31a)+_0x57df8e(0x1d7)+_0x57df8e(0x362)+_0x57df8e(0x36d)+'>');})[_0x4a9858(0x231)]('');}catch(_0x3d2869){_0x126671[_0x4a9858(0x383)]=_0x4a9858(0x345)+_0x4a9858(0x306)+_0x4a9858(0x2c3)+_0x4a9858(0x2e4)+_0x4a9858(0x32b)+_0x4a9858(0x1dd)+_0x4a9858(0x1be),console['error'](_0x3d2869);}}window[a0_0x53f76d(0x1e8)+a0_0x53f76d(0x3a0)]=()=>{const _0x544a66=a0_0x53f76d;if(!currentUser){toast('Нужно\x20войт'+'и\x20в\x20аккаун'+'т');return;}document[_0x544a66(0x32e)+_0x544a66(0x2ba)](_0x544a66(0x379))[_0x544a66(0x20b)][_0x544a66(0x27c)]=_0x544a66(0x36e),document[_0x544a66(0x32e)+_0x544a66(0x2ba)](_0x544a66(0x289))[_0x544a66(0x20b)][_0x544a66(0x27c)]=_0x544a66(0x286),document[_0x544a66(0x32e)+_0x544a66(0x2ba)](_0x544a66(0x1b5))[_0x544a66(0x20b)][_0x544a66(0x27c)]=_0x544a66(0x36e),document[_0x544a66(0x32e)+'ById'](_0x544a66(0x1f4))['style'][_0x544a66(0x27c)]='none';},window[a0_0x53f76d(0x305)+a0_0x53f76d(0x357)]=()=>{const _0x2998d8=a0_0x53f76d;document['getElement'+_0x2998d8(0x2ba)]('t-main')['style'][_0x2998d8(0x27c)]=_0x2998d8(0x36e),document[_0x2998d8(0x32e)+'ById'](_0x2998d8(0x289))['style'][_0x2998d8(0x27c)]=_0x2998d8(0x36e),document[_0x2998d8(0x32e)+_0x2998d8(0x2ba)](_0x2998d8(0x1b5))[_0x2998d8(0x20b)][_0x2998d8(0x27c)]='block',document['getElement'+'ById'](_0x2998d8(0x1f4))[_0x2998d8(0x20b)]['display']=_0x2998d8(0x36e);},window[a0_0x53f76d(0x2f4)]=()=>{const _0x5cc4ca=a0_0x53f76d;document['getElement'+'ById'](_0x5cc4ca(0x379))['style'][_0x5cc4ca(0x27c)]='block',document[_0x5cc4ca(0x32e)+'ById'](_0x5cc4ca(0x289))[_0x5cc4ca(0x20b)][_0x5cc4ca(0x27c)]=_0x5cc4ca(0x36e),document[_0x5cc4ca(0x32e)+_0x5cc4ca(0x2ba)](_0x5cc4ca(0x1b5))['style'][_0x5cc4ca(0x27c)]=_0x5cc4ca(0x36e),document['getElement'+_0x5cc4ca(0x2ba)](_0x5cc4ca(0x1f4))['style'][_0x5cc4ca(0x27c)]=_0x5cc4ca(0x36e),loadTournaments();};function generateCode(){const _0x3cd09e=a0_0x53f76d;return String(Math[_0x3cd09e(0x300)](0x3e8+Math[_0x3cd09e(0x28b)]()*0x2328));}window[a0_0x53f76d(0x2b5)+a0_0x53f76d(0x247)]=async()=>{const _0x59619e=a0_0x53f76d,_0x3424e6=document[_0x59619e(0x32e)+_0x59619e(0x2ba)](_0x59619e(0x2f3)+'ut')['value'][_0x59619e(0x2ac)]()||_0x59619e(0x31d),_0x170de2=generateCode(),_0x1fb567=currentUser[_0x59619e(0x333)];try{const _0x1850a2=await addDoc(collection(db,'tournament'+'s'),{'name':_0x3424e6,'code':_0x170de2,'createdBy':_0x1fb567,'createdAt':new Date()[_0x59619e(0x273)+'g'](),'status':_0x59619e(0x1f5),'participants':[_0x1fb567],'participantNames':{[_0x1fb567]:currentUser['displayNam'+'e']||'Игрок'},'participantPhotos':{[_0x1fb567]:currentUser[_0x59619e(0x2a8)]||null},'scores':{},'finished':{},'totals':{}});toast(_0x59619e(0x2ea)+_0x59619e(0x2f5)+_0x170de2),showTournamentDetail(_0x1850a2['id']);}catch(_0x4538a5){toast(_0x59619e(0x33e)+_0x59619e(0x213)),console['error'](_0x4538a5);}},window[a0_0x53f76d(0x258)+a0_0x53f76d(0x3a2)]=async()=>{const _0x42cbee=a0_0x53f76d,_0x563f44=document[_0x42cbee(0x32e)+'ById'](_0x42cbee(0x201)+'ut')[_0x42cbee(0x334)]['trim']();if(_0x563f44[_0x42cbee(0x221)]!==0x4){toast(_0x42cbee(0x2ee)+'ачный\x20код');return;}try{const _0x179e4a=query(collection(db,_0x42cbee(0x1ab)+'s'),where(_0x42cbee(0x311),'==',_0x563f44),where(_0x42cbee(0x1e3),'==',_0x42cbee(0x1f5))),_0x1de8b5=await getDocs(_0x179e4a);if(_0x1de8b5['empty']){toast(_0x42cbee(0x1fa)+_0x42cbee(0x343));return;}const _0x11476f=_0x1de8b5[_0x42cbee(0x21a)][0x0],_0x19f036=_0x11476f['id'];if(currentUser){const _0x1fedbf=currentUser[_0x42cbee(0x333)];await updateDoc(doc(db,_0x42cbee(0x1ab)+'s',_0x19f036),{'participants':arrayUnion(_0x1fedbf),[_0x42cbee(0x2d0)+_0x42cbee(0x387)+_0x1fedbf]:currentUser[_0x42cbee(0x2be)+'e']||_0x42cbee(0x31c),[_0x42cbee(0x2d0)+_0x42cbee(0x364)+_0x1fedbf]:currentUser[_0x42cbee(0x2a8)]||null});}toast(_0x42cbee(0x1ee)+'лся\x20к\x20турн'+_0x42cbee(0x30c)),showTournamentDetail(_0x19f036);}catch(_0x2cfcb5){toast(_0x42cbee(0x365)),console[_0x42cbee(0x274)](_0x2cfcb5);}};async function loadTournaments(){const _0x55bc3f=a0_0x53f76d,_0x14f021=document[_0x55bc3f(0x32e)+_0x55bc3f(0x2ba)](_0x55bc3f(0x1fd));_0x14f021['innerHTML']='<div\x20class'+_0x55bc3f(0x301)+'>Загрузка.'+'..</div>';try{const _0x287ec5=query(collection(db,'tournament'+'s'),where('status','==','open'),orderBy(_0x55bc3f(0x360),_0x55bc3f(0x24e)),limit(0xa)),_0x430f6d=await getDocs(_0x287ec5);if(_0x430f6d[_0x55bc3f(0x30e)]){_0x14f021[_0x55bc3f(0x383)]=_0x55bc3f(0x345)+_0x55bc3f(0x306)+_0x55bc3f(0x2c3)+'\x22empty-ico'+_0x55bc3f(0x2d4)+_0x55bc3f(0x345)+'=\x22empty-te'+_0x55bc3f(0x226)+_0x55bc3f(0x19f)+'ниров</div'+_0x55bc3f(0x349);return;}_0x14f021['innerHTML']=_0x430f6d['docs']['map'](_0x2e0e96=>{const _0x336d37=_0x55bc3f,_0x180f30=_0x2e0e96[_0x336d37(0x392)](),_0x185b9d=_0x180f30[_0x336d37(0x2d0)+'ts']?.[_0x336d37(0x221)]||0x0;return _0x336d37(0x345)+_0x336d37(0x25d)+_0x336d37(0x202)+_0x336d37(0x298)+_0x336d37(0x25e)+'tail(\x27'+_0x2e0e96['id']+(_0x336d37(0x290)+_0x336d37(0x254)+_0x336d37(0x304)+_0x336d37(0x2c3)+_0x336d37(0x20c))+_0x180f30[_0x336d37(0x384)]+(_0x336d37(0x31e)+'\x20\x20\x20\x20\x20\x20\x20<di'+'v\x20class=\x22t'+'-meta\x22>')+_0x185b9d+_0x336d37(0x315)+(_0x185b9d===0x1?'':'ов')+_0x336d37(0x356)+new Date(_0x180f30['createdAt'])[_0x336d37(0x257)+_0x336d37(0x267)]('ru-RU')+('</div>\x0a\x20\x20\x20'+_0x336d37(0x36d)+'>\x0a\x20\x20\x20\x20\x20\x20\x20\x20'+_0x336d37(0x345)+_0x336d37(0x2c6))+_0x180f30[_0x336d37(0x311)]+(_0x336d37(0x31e)+_0x336d37(0x33b));})[_0x55bc3f(0x231)]('');}catch(_0x33164a){_0x14f021[_0x55bc3f(0x383)]=_0x55bc3f(0x345)+'=\x22empty\x22><'+_0x55bc3f(0x2c3)+_0x55bc3f(0x2e4)+_0x55bc3f(0x32b)+'загрузки</'+_0x55bc3f(0x1be);}}async function showTournamentDetail(_0x37cf7b){const _0x27334d=a0_0x53f76d;document['getElement'+_0x27334d(0x2ba)](_0x27334d(0x379))[_0x27334d(0x20b)][_0x27334d(0x27c)]=_0x27334d(0x36e),document[_0x27334d(0x32e)+_0x27334d(0x2ba)](_0x27334d(0x289))[_0x27334d(0x20b)][_0x27334d(0x27c)]=_0x27334d(0x36e),document[_0x27334d(0x32e)+_0x27334d(0x2ba)](_0x27334d(0x1b5))[_0x27334d(0x20b)][_0x27334d(0x27c)]=_0x27334d(0x36e),document['getElement'+_0x27334d(0x2ba)](_0x27334d(0x1f4))[_0x27334d(0x20b)]['display']=_0x27334d(0x286),document[_0x27334d(0x32e)+_0x27334d(0x2ba)]('t-detail-n'+_0x27334d(0x25b))[_0x27334d(0x314)+'t']=_0x27334d(0x1a2)+'.';try{const _0x1a6b7d=await getDoc(doc(db,'tournament'+'s',_0x37cf7b));if(!_0x1a6b7d[_0x27334d(0x33c)]()){toast('Турнир\x20не\x20'+_0x27334d(0x343)),showTMain();return;}currentTournament={'id':_0x37cf7b,..._0x1a6b7d['data']()};const _0x566e4d=currentTournament;document[_0x27334d(0x32e)+'ById'](_0x27334d(0x215)+_0x27334d(0x25b))['textConten'+'t']=_0x566e4d['name'],document[_0x27334d(0x32e)+_0x27334d(0x2ba)]('t-detail-m'+_0x27334d(0x1eb))[_0x27334d(0x314)+'t']=(_0x566e4d[_0x27334d(0x2d0)+'ts']?.[_0x27334d(0x221)]||0x0)+(_0x27334d(0x380)+'в\x20·\x20Код:\x20')+_0x566e4d['code'],document[_0x27334d(0x32e)+_0x27334d(0x2ba)]('t-detail-c'+_0x27334d(0x240))[_0x27334d(0x314)+'t']=_0x566e4d[_0x27334d(0x311)];const _0x5059f9=document[_0x27334d(0x32e)+_0x27334d(0x2ba)]('t-particip'+_0x27334d(0x1a9));_0x5059f9[_0x27334d(0x383)]=(_0x566e4d['participan'+'ts']||[])['map'](_0x2ef3e6=>{const _0x325d5e=_0x27334d,_0x26ef1c=_0x566e4d[_0x325d5e(0x2d0)+_0x325d5e(0x26e)]?.[_0x2ef3e6]||_0x325d5e(0x31c),_0x5bd0d7=_0x566e4d['participan'+_0x325d5e(0x398)]?.[_0x2ef3e6],_0x584bf0=_0x566e4d[_0x325d5e(0x368)]?.[_0x2ef3e6],_0x23a10c=_0x566e4d[_0x325d5e(0x287)]?.[_0x2ef3e6],_0xab80b9=_0x5bd0d7?_0x325d5e(0x2f9)+_0x5bd0d7+(_0x325d5e(0x367)+'articipant'+'-avatar\x22\x20a'+_0x325d5e(0x302)):_0x325d5e(0x345)+_0x325d5e(0x2a6)+_0x325d5e(0x30b)+_0x325d5e(0x2ed)+_0x325d5e(0x22d)+'>';return _0x325d5e(0x345)+_0x325d5e(0x2a6)+'ant-row\x22>\x0a'+_0x325d5e(0x29b)+_0xab80b9+('\x0a\x20\x20\x20\x20\x20\x20\x20\x20<'+_0x325d5e(0x2c3)+_0x325d5e(0x377)+_0x325d5e(0x371))+_0x26ef1c+(_0x325d5e(0x31e)+_0x325d5e(0x1b0)+_0x325d5e(0x249)+_0x325d5e(0x296)+'tatus\x20')+(_0x584bf0?_0x325d5e(0x2e1):'')+'\x22>'+(_0x584bf0?'✓\x20'+_0x23a10c+_0x325d5e(0x1c2):_0x325d5e(0x256))+(_0x325d5e(0x31e)+_0x325d5e(0x33b));})[_0x27334d(0x231)]('');const _0x376ea1=(_0x566e4d[_0x27334d(0x2d0)+'ts']||[])[_0x27334d(0x313)](_0x16091c=>_0x566e4d[_0x27334d(0x368)]?.[_0x16091c]);if(_0x376ea1&&Object[_0x27334d(0x2b8)](_0x566e4d[_0x27334d(0x287)]||{})[_0x27334d(0x221)]>0x0){document['getElement'+_0x27334d(0x2ba)](_0x27334d(0x1da)+'wrap')['style']['display']='block';const _0x14da33=Object[_0x27334d(0x37b)](_0x566e4d[_0x27334d(0x287)])['sort']((_0x5a693e,_0x404122)=>_0x5a693e[0x1]-_0x404122[0x1]),_0x564d83=['🥇','🥈','🥉'];document[_0x27334d(0x32e)+_0x27334d(0x2ba)](_0x27334d(0x27b))[_0x27334d(0x383)]=_0x14da33[_0x27334d(0x22e)](([_0x215ddd,_0x4fe9fa],_0xc5fb39)=>{const _0x31f40c=_0x27334d,_0x36791c=_0x566e4d[_0x31f40c(0x2d0)+_0x31f40c(0x26e)]?.[_0x215ddd]||_0x31f40c(0x31c);return _0x31f40c(0x345)+'=\x22podium-r'+_0x31f40c(0x255)+_0x31f40c(0x1b0)+_0x31f40c(0x29d)+_0x31f40c(0x1cd)+(_0x564d83[_0xc5fb39]||_0xc5fb39+0x1)+(_0x31f40c(0x31e)+'\x20\x20\x20\x20\x20\x20\x20<di'+_0x31f40c(0x223)+_0x31f40c(0x28a)+'\x22><div\x20cla'+'ss=\x22podium'+_0x31f40c(0x19d))+_0x36791c+(_0x31f40c(0x20e)+_0x31f40c(0x1f0)+_0x31f40c(0x264)+_0x31f40c(0x2fb)+_0x31f40c(0x1d3))+_0x4fe9fa+(_0x31f40c(0x31e)+_0x31f40c(0x36d)+'>');})[_0x27334d(0x231)]('');}const _0x2a0dbe=currentUser&&(_0x566e4d[_0x27334d(0x2d0)+'ts']||[])[_0x27334d(0x26d)](currentUser[_0x27334d(0x333)]),_0x2e0363=currentUser&&_0x566e4d[_0x27334d(0x368)]?.[currentUser[_0x27334d(0x333)]],_0x3eeb1b=document[_0x27334d(0x32e)+'ById'](_0x27334d(0x1f9)+'n');_0x3eeb1b[_0x27334d(0x20b)][_0x27334d(0x27c)]=_0x2a0dbe&&!_0x2e0363?_0x27334d(0x286):_0x27334d(0x36e);}catch(_0x1f2d2a){toast('Ошибка'),console[_0x27334d(0x274)](_0x1f2d2a);}}window[a0_0x53f76d(0x27e)+a0_0x53f76d(0x209)]=showTournamentDetail,window['toast']=_0x2b78e0=>{const _0x1c5b55=a0_0x53f76d,_0x3bc145=document['getElement'+_0x1c5b55(0x2ba)](_0x1c5b55(0x326));_0x3bc145[_0x1c5b55(0x314)+'t']=_0x2b78e0,_0x3bc145[_0x1c5b55(0x263)][_0x1c5b55(0x30d)](_0x1c5b55(0x21e)),setTimeout(()=>_0x3bc145[_0x1c5b55(0x263)]['remove'](_0x1c5b55(0x21e)),0xaf0);},setTimeout(checkResume,0x1f4),window[a0_0x53f76d(0x1c8)]=auth;
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, addDoc, updateDoc, arrayUnion, onSnapshot, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBsNOGmjp6BRzysvGU4gKS9-6CbqYYMS80",
+  authDomain: "minigolf1.firebaseapp.com",
+  projectId: "minigolf1",
+  storageBucket: "minigolf1.firebasestorage.app",
+  messagingSenderId: "532414899327",
+  appId: "1:532414899327:web:9d664018fcae5882698b4a",
+  measurementId: "G-SEZ5P231Z2"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+// ─── STATE ───────────────────────────────────────────
+let currentUser = null;
+let userProfile = null;
+let currentHole = 0;
+let myScores = Array(18).fill(0);
+let savePublic = true;
+let roundNumber = 1;
+let activeTournamentId = null;
+let currentTournament = null;
+let ratingMode = 'alltime';
+let isDark = true;
+const HOLES = 18;
+const MAX_SCORE = 6;
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyVD6ZOU1hlxqeM7o8bDbnwWpWrssSBZA3rW-iQsE4--5fdcf50wr3nPiRHCgq3RNAe/exec';
+
+// ─── RANKS ───────────────────────────────────────────
+const RANKS = [
+  {name:'👑 Легенда',     max:32},
+  {name:'🌟 Элита',       max:36},
+  {name:'🔥 Мастер',      max:40},
+  {name:'🏅 Бывалый',     max:44},
+  {name:'🔵 Крепкий',     max:48},
+  {name:'💪 Твёрдый',     max:53},
+  {name:'🎯 Игрок',       max:58},
+  {name:'⛳ Любитель',    max:65},
+  {name:'🏌️ Начинающий', max:72},
+  {name:'🌱 Новичок',     max:Infinity},
+];
+
+function getRank(avg) {
+  return RANKS.find(r => avg < r.max) || RANKS[RANKS.length-1];
+}
+
+// ─── BADGES ──────────────────────────────────────────
+const BADGE_DEFS = [
+  {id:'hole_in_one',   emoji:'🎯', name:'Хол-ин-ван',      desc:'Забил с 1 удара'},
+  {id:'sniper',        emoji:'⚡', name:'Снайпер',          desc:'3+ хол-ин-вана за партию'},
+  {id:'ice',           emoji:'🧊', name:'Лёд',              desc:'Ни одного счёта 7 в партии'},
+  {id:'sharp',         emoji:'🎯', name:'Меткий',           desc:'Вся партия не более 4 ударов'},
+  {id:'perfect',       emoji:'💎', name:'Идеальная партия', desc:'Вся партия не более 3 ударов'},
+  {id:'regular',       emoji:'🔁', name:'Постоянный',       desc:'10 партий сыграно'},
+  {id:'week_champ',    emoji:'🏆', name:'Чемпион недели',   desc:'Лучший результат за неделю'},
+  {id:'month_champ',   emoji:'📅', name:'Чемпион месяца',   desc:'Лучший результат за месяц'},
+  {id:'improving',     emoji:'📈', name:'На подъёме',       desc:'3 партии подряд с улучшением'},
+  {id:'record',        emoji:'👑', name:'Рекордсмен',       desc:'Лучший результат за всю историю'},
+];
+
+function toRecorded(s) { return s === 6 ? 7 : s; }
+
+function checkBadges(scores, allGames) {
+  const earned = [];
+  const recorded = scores.map(toRecorded);
+  const total = recorded.reduce((a,b)=>a+b,0);
+  const holeInOnes = scores.filter(s=>s===1).length;
+
+  if (holeInOnes >= 1) earned.push('hole_in_one');
+  if (holeInOnes >= 3) earned.push('sniper');
+  if (!recorded.includes(7)) earned.push('ice');
+  if (recorded.every(s=>s<=4)) earned.push('sharp');
+  if (recorded.every(s=>s<=3)) earned.push('perfect');
+  if (allGames.length >= 10) earned.push('regular');
+
+  // improving: last 3 games improving
+  if (allGames.length >= 3) {
+    const last3 = allGames.slice(-3).map(g=>g.total);
+    if (last3[0] > last3[1] && last3[1] > last3[2]) earned.push('improving');
+  }
+  return earned;
+}
+
+// ─── AUTH ─────────────────────────────────────────────
+window.signInGoogle = async () => {
+  try {
+    await signInWithPopup(auth, provider);
+  } catch(e) { toast('Ошибка входа'); }
+};
+
+window.continueAsGuest = () => {
+  currentUser = null;
+  showApp();
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    await loadOrCreateProfile(user);
+    showApp();
+  }
+});
+
+async function loadOrCreateProfile(user) {
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    userProfile = {
+      uid: user.uid,
+      name: user.displayName,
+      photo: user.photoURL,
+      games: [],
+      badges: [],
+      createdAt: Date.now()
+    };
+    await setDoc(ref, userProfile);
+  } else {
+    userProfile = snap.data();
+  }
+  renderNavAvatar();
+}
+
+function renderNavAvatar() {
+  const wrap = document.getElementById('nav-avatar-wrap');
+  if (!currentUser) {
+    wrap.innerHTML = `<div class="avatar-placeholder" title="Гость">👤</div>`;
+    return;
+  }
+  if (currentUser.photoURL) {
+    wrap.innerHTML = `<img src="${currentUser.photoURL}" class="avatar" alt="">`;
+  } else {
+    wrap.innerHTML = `<div class="avatar-placeholder">${currentUser.displayName?.[0]||'?'}</div>`;
+  }
+}
+
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-nav').style.display = 'flex';
+  showTab('game');
+  if (currentUser) {
+    const greeting = document.getElementById('game-greeting');
+    greeting.textContent = `Привет, ${currentUser.displayName?.split(' ')[0] || 'игрок'}! Готов?`;
+  }
+}
+
+// ─── TABS ─────────────────────────────────────────────
+window.showTab = (tab) => {
+  ['game','profile','rating','tournament'].forEach(t => {
+    document.getElementById(t+'-screen').classList.remove('active');
+  });
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(tab+'-screen').classList.add('active');
+  const tabs = ['game','rating','tournament'];
+  const idx = tabs.indexOf(tab);
+  if (idx >= 0) document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+
+  if (tab === 'profile') renderProfile();
+  if (tab === 'rating') loadRating();
+  if (tab === 'tournament') loadTournaments();
+};
+
+// ─── THEME ────────────────────────────────────────────
+window.toggleTheme = () => {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? '' : 'light');
+  document.getElementById('theme-btn').textContent = isDark ? '☀️' : '🌙';
+};
+
+// ─── GAME ─────────────────────────────────────────────
+function getTodayKey() {
+  const d = new Date();
+  return `golf_round_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+}
+function getNextRound() {
+  try {
+    const k = getTodayKey();
+    const n = parseInt(localStorage.getItem(k)||'0')+1;
+    localStorage.setItem(k, n);
+    return n;
+  } catch(e) { return 1; }
+}
+
+window.startGame = () => {
+  myScores = Array(18).fill(0);
+  currentHole = 0;
+  savePublic = document.getElementById('save-toggle').checked;
+  roundNumber = getNextRound();
+  activeTournamentId = null;
+  document.getElementById('game-setup').style.display = 'none';
+  document.getElementById('game-play').style.display = 'block';
+  document.getElementById('game-results').style.display = 'none';
+  renderGame();
+  autosave();
+};
+
+window.startTournamentGame = () => {
+  if (!currentTournament) return;
+  activeTournamentId = currentTournament.id;
+  myScores = Array(18).fill(0);
+  currentHole = 0;
+  roundNumber = getNextRound();
+  document.getElementById('game-setup').style.display = 'none';
+  document.getElementById('game-play').style.display = 'block';
+  document.getElementById('game-results').style.display = 'none';
+  showTab('game');
+  renderGame();
+  autosave();
+};
+
+function renderGame() {
+  document.getElementById('hole-label').textContent = `Лунка ${currentHole+1}`;
+  document.getElementById('hole-sub').textContent = `из ${HOLES}`;
+  document.getElementById('prev-btn').disabled = currentHole === 0;
+  const isLast = currentHole === HOLES-1;
+  document.getElementById('next-btn').textContent = isLast ? 'Итоги →' : 'Далее →';
+  document.getElementById('fwd-btn').textContent = isLast ? '⚑' : '→';
+
+  // name label
+  const name = currentUser ? currentUser.displayName?.split(' ')[0] || 'Я' : 'Гость';
+  document.getElementById('my-score-label').textContent = `${name} — счёт на лунке`;
+
+  // dots
+  const dots = document.getElementById('dots');
+  dots.innerHTML = Array.from({length:HOLES},(_,i)=>{
+    const cls = i===currentHole ? 'current' : myScores[i]>0 ? 'done' : '';
+    return `<div class="dot ${cls}" onclick="goToHole(${i})">${i+1}</div>`;
+  }).join('');
+
+  // score buttons
+  const picker = document.getElementById('score-picker');
+  const cur = myScores[currentHole];
+  picker.innerHTML = Array.from({length:MAX_SCORE},(_,v)=>{
+    const val = v+1;
+    return `<button class="score-btn ${cur===val?'active':''}" onclick="setMyScore(${val})">${val}</button>`;
+  }).join('');
+
+  // my total
+  const total = myScores.reduce((a,s)=>a+toRecorded(s),0);
+  document.getElementById('my-total').textContent = total || '—';
+
+  // others in tournament
+  renderOthers();
+}
+
+async function renderOthers() {
+  if (!activeTournamentId) { document.getElementById('others-card').style.display='none'; return; }
+  try {
+    const tRef = doc(db,'tournaments',activeTournamentId);
+    const tSnap = await getDoc(tRef);
+    if (!tSnap.exists()) return;
+    const t = tSnap.data();
+    const scores = t.scores || {};
+    const myUid = currentUser?.uid;
+    const others = Object.entries(scores).filter(([uid])=>uid!==myUid);
+    if (others.length === 0) { document.getElementById('others-card').style.display='none'; return; }
+    document.getElementById('others-card').style.display = 'block';
+    const list = document.getElementById('others-list');
+    list.innerHTML = others.map(([uid, sc])=>{
+      const holeScore = sc[currentHole] || 0;
+      const total = sc.reduce((a,s)=>a+toRecorded(s||0),0);
+      const name = t.participantNames?.[uid] || uid.slice(0,6);
+      const done = holeScore > 0;
+      return `<div class="other-row">
+        <div class="other-name">${name}</div>
+        <div class="other-score ${done?'done':''}">${done ? `${holeScore} (${total})` : '...'}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {}
+}
+
+window.setMyScore = (val) => {
+  myScores[currentHole] = val;
+  renderGame();
+  autosave();
+  // save to tournament
+  if (activeTournamentId && currentUser) {
+    const uid = currentUser.uid;
+    const update = {};
+    update[`scores.${uid}`] = myScores;
+    updateDoc(doc(db,'tournaments',activeTournamentId), update).catch(()=>{});
+  }
+};
+
+window.goToHole = (i) => { currentHole=i; renderGame(); autosave(); };
+window.prevHole = () => { if(currentHole>0){currentHole--;renderGame();autosave();} };
+window.nextHole = () => {
+  if(currentHole===HOLES-1){showResults();return;}
+  currentHole++; renderGame(); autosave();
+};
+
+async function showResults() {
+  clearAutosave();
+  document.getElementById('game-play').style.display='none';
+  document.getElementById('game-results').style.display='block';
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})+' · '+now.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})+` · Партия ${roundNumber}`;
+  document.getElementById('result-date').textContent = dateStr;
+
+  const recorded = myScores.map(toRecorded);
+  const total = recorded.reduce((a,b)=>a+b,0);
+  const name = currentUser?.displayName?.split(' ')[0] || 'Гость';
+
+  // podium (solo)
+  document.getElementById('podium').innerHTML = `
+    <div class="podium-row">
+      <div class="podium-pos gold">🏆</div>
+      <div class="podium-info"><div class="podium-name">${name}</div></div>
+      <div class="podium-score">${total}</div>
+    </div>`;
+
+  // holes table
+  let html = `<table class="holes-table"><thead><tr><th>Игрок</th>`;
+  for(let h=1;h<=HOLES;h++) html+=`<th>${h}</th>`;
+  html+=`<th>∑</th></tr></thead><tbody><tr><td>${name}</td>`;
+  recorded.forEach(s=>{html+=`<td>${s||'—'}</td>`;});
+  html+=`<td class="total">${total}</td></tr></tbody></table>`;
+  document.getElementById('holes-table-wrap').innerHTML = html;
+
+  document.getElementById('save-block').style.display = savePublic ? 'block' : 'none';
+  document.getElementById('sheet-status').className = 'sheet-status';
+
+  // save to firebase
+  if (currentUser) {
+    await saveGameToFirebase(recorded, total, now);
+  }
+
+  // tournament finish
+  if (activeTournamentId && currentUser) {
+    await updateDoc(doc(db,'tournaments',activeTournamentId),{
+      [`finished.${currentUser.uid}`]: true,
+      [`totals.${currentUser.uid}`]: total
+    });
+  }
+}
+
+async function saveGameToFirebase(recorded, total, date) {
+  try {
+    const uid = currentUser.uid;
+    const gameData = {
+      uid, total, holes: recorded,
+      date: date.toISOString(),
+      round: roundNumber,
+      tournamentId: activeTournamentId || null
+    };
+    // add to games collection
+    await addDoc(collection(db,'games'), gameData);
+
+    // update user profile stats
+    const userRef = doc(db,'users',uid);
+    const snap = await getDoc(userRef);
+    const profile = snap.data() || {};
+    const games = profile.games || [];
+    games.push({total, holes: recorded, date: date.toISOString()});
+
+    // calc avg of last 5
+    const last5 = games.slice(-5).map(g=>g.total);
+    const avg = last5.reduce((a,b)=>a+b,0)/last5.length;
+    const rank = getRank(avg);
+
+    // check badges
+    const newBadges = checkBadges(myScores, games);
+    const allBadges = [...new Set([...(profile.badges||[]), ...newBadges])];
+
+    // best score
+    const best = Math.min(...games.map(g=>g.total));
+
+    // calc holeAvgs
+    const holeAvgs = Array(18).fill(0).map((_,i)=>{
+      const allGamesWithHoles = games.filter(g=>g.holes&&g.holes[i]>0);
+      if (allGamesWithHoles.length===0) return 0;
+      return allGamesWithHoles.reduce((a,g)=>a+(g.holes[i]||0),0)/allGamesWithHoles.length;
+    });
+
+    await setDoc(userRef, {
+      ...profile,
+      games, avg: Math.round(avg*10)/10,
+      rank: rank.name, badges: allBadges, best,
+      lastGame: date.toISOString(),
+      holeAvgs
+    }, {merge:true});
+
+    userProfile = {...profile, games, avg, rank:rank.name, badges:allBadges, best, holeAvgs};
+
+    // show earned badges
+    if (newBadges.length > 0) {
+      const names = newBadges.map(id=>BADGE_DEFS.find(b=>b.id===id)?.name).filter(Boolean);
+      setTimeout(()=>toast(`🏅 Новый бейдж: ${names.join(', ')}`), 1000);
+    }
+  } catch(e) { console.error(e); }
+}
+
+window.saveToSheets = async () => {
+  const status = document.getElementById('sheet-status');
+  status.style.display='block';
+  status.className='sheet-status';
+  status.textContent='Отправляю...';
+  const now = new Date().toLocaleString('ru-RU');
+  const recorded = myScores.map(toRecorded);
+  const total = recorded.reduce((a,b)=>a+b,0);
+  const name = currentUser?.displayName || 'Гость';
+  const rows = [{date:now, round:roundNumber, player:name, total, holes:recorded}];
+  try {
+    await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows})});
+    status.className='sheet-status ok';
+    status.textContent='✓ Сохранено в Google Sheets';
+    toast('Сохранено!');
+  } catch(e) {
+    status.className='sheet-status err';
+    status.textContent='✗ Ошибка. Проверь подключение.';
+  }
+};
+
+window.newGame = () => {
+  document.getElementById('game-results').style.display='none';
+  document.getElementById('game-setup').style.display='block';
+  activeTournamentId = null;
+};
+
+// ─── AUTOSAVE ─────────────────────────────────────────
+const SAVE_KEY = 'golf_autosave_v2';
+function autosave() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      myScores, currentHole, roundNumber, savePublic, activeTournamentId, savedAt: Date.now()
+    }));
+  } catch(e){}
+}
+function clearAutosave() { try{localStorage.removeItem(SAVE_KEY);}catch(e){} }
+
+function checkResume() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d.myScores || !d.myScores.some(s=>s>0)) { clearAutosave(); return; }
+    const ago = Math.round((Date.now()-d.savedAt)/60000);
+    const agoText = ago<1?'только что':ago<60?`${ago} мин назад`:`${Math.round(ago/60)} ч назад`;
+    if (confirm(`Есть незавершённая игра (${agoText}, лунка ${d.currentHole+1}). Продолжить?`)) {
+      myScores = d.myScores;
+      currentHole = d.currentHole;
+      roundNumber = d.roundNumber||1;
+      savePublic = d.savePublic!==false;
+      activeTournamentId = d.activeTournamentId||null;
+      document.getElementById('game-setup').style.display='none';
+      document.getElementById('game-play').style.display='block';
+      document.getElementById('game-results').style.display='none';
+      renderGame();
+    } else {
+      clearAutosave();
+    }
+  } catch(e){}
+}
+
+
+function renderHolesAnalysis(holeAvgs) {
+  if (!holeAvgs || holeAvgs.length < 18) return '';
+  const indexed = holeAvgs.map((avg,i)=>({hole:i+1, avg})).filter(x=>x.avg>0);
+  if (indexed.length === 0) return '';
+
+  const sorted = [...indexed].sort((a,b)=>a.avg-b.avg);
+  const byStability = [...indexed].sort((a,b)=>{
+    // stability = closeness to 3 (optimal)
+    return Math.abs(a.avg-3) - Math.abs(b.avg-3);
+  });
+
+  const best3 = sorted.slice(0,3);
+  const worst3 = sorted.slice(-3).reverse();
+  const stable3 = byStability.slice(0,3);
+
+  const itemHtml = (items, cls) => items.map(x=>
+    `<div class="hole-item">
+      <span class="hole-num">Лунка ${x.hole}</span>
+      <span class="hole-val ${cls}">${x.avg.toFixed(1)}</span>
+    </div>`
+  ).join('');
+
+  return `<div class="card">
+    <div class="card-title">Анализ лунок</div>
+    <div class="holes-analysis">
+      <div class="holes-col">
+        <div class="holes-col-title green">🟢 Лучшие</div>
+        ${itemHtml(best3, 'green')}
+      </div>
+      <div class="holes-col">
+        <div class="holes-col-title blue">🔵 Стабильные</div>
+        ${itemHtml(stable3, 'blue')}
+      </div>
+      <div class="holes-col">
+        <div class="holes-col-title red">🔴 Сложные</div>
+        ${itemHtml(worst3, 'red')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ─── PROFILE ──────────────────────────────────────────
+window.renderProfile = async () => {
+  const wrap = document.getElementById('profile-content');
+  if (!currentUser) {
+    wrap.innerHTML = `<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Войди в аккаунт чтобы видеть профиль</div><button class="btn btn-primary" style="margin-top:16px" onclick="signInGoogle()">Войти через Google</button></div>`;
+    return;
+  }
+  if (!userProfile) { wrap.innerHTML='<div class="loading">Загрузка...</div>'; return; }
+
+  const games = userProfile.games||[];
+  const avg = userProfile.avg||0;
+  const rank = userProfile.rank||getRank(999).name;
+  const best = userProfile.best||'—';
+  const badges = userProfile.badges||[];
+  const photo = currentUser.photoURL;
+
+  const avatarHtml = photo
+    ? `<img src="${photo}" class="profile-avatar" alt="">`
+    : `<div class="profile-avatar-placeholder">👤</div>`;
+
+  const badgesHtml = BADGE_DEFS.map(b=>{
+    const earned = badges.includes(b.id);
+    return `<div class="badge ${earned?'':'locked'}" title="${b.desc}">${b.emoji} ${b.name}</div>`;
+  }).join('');
+
+  const recentHtml = games.slice(-5).reverse().map((g,i)=>`
+    <div class="rating-row">
+      <div class="rating-pos" style="color:var(--text3)">${i+1}</div>
+      <div class="rating-info"><div class="rating-name">Партия</div><div class="rating-rank">${new Date(g.date).toLocaleDateString('ru-RU')}</div></div>
+      <div><div class="rating-score">${g.total}</div><div class="rating-score-label">ударов</div></div>
+    </div>`).join('');
+
+  wrap.innerHTML = `
+    <div class="profile-header">
+      ${avatarHtml}
+      <div class="profile-name">${currentUser.displayName||'Игрок'}</div>
+      <div class="rank-badge">${rank}</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val">${games.length}</div><div class="stat-label">Партий сыграно</div></div>
+      <div class="stat-card"><div class="stat-val">${best}</div><div class="stat-label">Лучший результат</div></div>
+      <div class="stat-card"><div class="stat-val">${avg||'—'}</div><div class="stat-label">Средний (5 партий)</div></div>
+      <div class="stat-card"><div class="stat-val">${badges.length}</div><div class="stat-label">Бейджей</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Бейджи</div>
+      <div class="badges-wrap">${badgesHtml}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Последние партии</div>
+      ${recentHtml || '<div class="empty-text" style="padding:16px 0;color:var(--text3)">Ещё нет партий</div>'}
+    </div>
+    ${renderHolesAnalysis(userProfile.holeAvgs)}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="share-btn" onclick="shareProfile()" style="flex:1;justify-content:center">🔗 Поделиться профилем</button>
+    </div>
+    <button class="btn btn-outline" onclick="signOut(auth);location.reload()" style="margin-top:8px">Выйти</button>`;
+};
+
+
+window.shareProfile = () => {
+  const uid = currentUser?.uid;
+  if (!uid) return;
+  const url = window.location.origin + window.location.pathname + '?user=' + uid;
+  navigator.clipboard.writeText(url).then(()=>toast('Ссылка скопирована!')).catch(()=>{
+    prompt('Скопируй ссылку:', url);
+  });
+};
+
+// ─── RATING ───────────────────────────────────────────
+window.switchRating = (mode) => {
+  ratingMode = mode;
+  document.querySelectorAll('.rating-tab').forEach((b,i)=>b.classList.toggle('active',
+    (i===0&&mode==='alltime')||(i===1&&mode==='month')||(i===2&&mode==='holes')
+  ));
+  if (mode === 'holes') loadHolesRating();
+  else loadRating();
+};
+
+async function loadRating() {
+  const list = document.getElementById('rating-list');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    let q;
+    if (ratingMode === 'month') {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);startOfMonth.setHours(0,0,0,0);
+      q = query(collection(db,'games'), where('date','>=',startOfMonth.toISOString()), orderBy('date','asc'));
+    } else {
+      q = query(collection(db,'games'), orderBy('total','asc'), limit(50));
+    }
+    const snap = await getDocs(q);
+    const games = snap.docs.map(d=>d.data());
+
+    // aggregate by user
+    const byUser = {};
+    for (const g of games) {
+      if (!g.uid) continue;
+      if (!byUser[g.uid]) byUser[g.uid] = {total:Infinity, count:0, best:Infinity};
+      if (g.total < byUser[g.uid].best) byUser[g.uid].best = g.total;
+      byUser[g.uid].count++;
+    }
+
+    // load user names
+    const uids = Object.keys(byUser);
+    const names = {};
+    for (const uid of uids) {
+      try {
+        const s = await getDoc(doc(db,'users',uid));
+        if (s.exists()) {
+          names[uid] = {name:s.data().name||'Игрок', photo:s.data().photo||null, rank:s.data().rank||'🌱 Новичок', avg:s.data().avg||'—'};
+        }
+      } catch(e){}
+    }
+
+    const sorted = uids.sort((a,b)=>{
+      const aAvg = names[a]?.avg||999;
+      const bAvg = names[b]?.avg||999;
+      if (typeof aAvg==='number' && typeof bAvg==='number') return aAvg-bAvg;
+      return byUser[a].best - byUser[b].best;
+    });
+
+    if (sorted.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div><div class="empty-text">Пока нет данных</div></div>';
+      return;
+    }
+
+    const posColors = ['gold','silver','bronze'];
+    list.innerHTML = sorted.map((uid,i)=>{
+      const u = names[uid]||{name:'Игрок',photo:null,rank:'🌱 Новичок',avg:'—'};
+      const posClass = posColors[i]||'';
+      const avatarHtml = u.photo
+        ? `<img src="${u.photo}" class="rating-avatar" alt="">`
+        : `<div class="rating-avatar-placeholder">👤</div>`;
+      const isMe = uid === currentUser?.uid;
+      return `<div class="rating-row" style="${isMe?'background:var(--green-bg);border-radius:8px;padding:10px 8px;margin:0 -8px':''}">
+        <div class="rating-pos ${posClass}">${i+1}</div>
+        ${avatarHtml}
+        <div class="rating-info">
+          <div class="rating-name">${u.name}${isMe?' (ты)':''}</div>
+          <div class="rating-rank">${u.rank}</div>
+        </div>
+        <div>
+          <div class="rating-score">${typeof u.avg==='number'?u.avg.toFixed(1):u.avg}</div>
+          <div class="rating-score-label">ср. счёт</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = `<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>`;
+    console.error(e);
+  }
+}
+
+// ─── TOURNAMENTS ──────────────────────────────────────
+window.showCreateTournament = () => {
+  if (!currentUser) { toast('Нужно войти в аккаунт'); return; }
+  document.getElementById('t-main').style.display='none';
+  document.getElementById('t-create').style.display='block';
+  document.getElementById('t-join').style.display='none';
+  document.getElementById('t-detail').style.display='none';
+};
+window.showJoinTournament = () => {
+  document.getElementById('t-main').style.display='none';
+  document.getElementById('t-create').style.display='none';
+  document.getElementById('t-join').style.display='block';
+  document.getElementById('t-detail').style.display='none';
+};
+window.showTMain = () => {
+  document.getElementById('t-main').style.display='block';
+  document.getElementById('t-create').style.display='none';
+  document.getElementById('t-join').style.display='none';
+  document.getElementById('t-detail').style.display='none';
+  loadTournaments();
+};
+
+function generateCode() {
+  return String(Math.floor(1000+Math.random()*9000));
+}
+
+window.createTournament = async () => {
+  const name = document.getElementById('t-name-input').value.trim() || 'Турнир';
+  const code = generateCode();
+  const uid = currentUser.uid;
+  try {
+    const ref = await addDoc(collection(db,'tournaments'),{
+      name, code, createdBy: uid,
+      createdAt: new Date().toISOString(),
+      status: 'open',
+      participants: [uid],
+      participantNames: {[uid]: currentUser.displayName||'Игрок'},
+      participantPhotos: {[uid]: currentUser.photoURL||null},
+      scores: {}, finished: {}, totals: {}
+    });
+    toast(`Турнир создан! Код: ${code}`);
+    showTournamentDetail(ref.id);
+  } catch(e) { toast('Ошибка создания'); console.error(e); }
+};
+
+window.joinTournament = async () => {
+  const code = document.getElementById('t-code-input').value.trim();
+  if (code.length !== 4) { toast('Введи 4-значный код'); return; }
+  try {
+    const q = query(collection(db,'tournaments'), where('code','==',code), where('status','==','open'));
+    const snap = await getDocs(q);
+    if (snap.empty) { toast('Турнир не найден'); return; }
+    const tDoc = snap.docs[0];
+    const tid = tDoc.id;
+    if (currentUser) {
+      const uid = currentUser.uid;
+      await updateDoc(doc(db,'tournaments',tid),{
+        participants: arrayUnion(uid),
+        [`participantNames.${uid}`]: currentUser.displayName||'Игрок',
+        [`participantPhotos.${uid}`]: currentUser.photoURL||null
+      });
+    }
+    toast('Присоединился к турниру!');
+    showTournamentDetail(tid);
+  } catch(e) { toast('Ошибка'); console.error(e); }
+};
+
+async function loadTournaments() {
+  const list = document.getElementById('t-list');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    const q = query(collection(db,'tournaments'), where('status','==','open'), orderBy('createdAt','desc'), limit(10));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div><div class="empty-text">Нет активных турниров</div></div>';
+      return;
+    }
+    list.innerHTML = snap.docs.map(d=>{
+      const t = d.data();
+      const n = t.participants?.length||0;
+      return `<div class="t-list-item" onclick="showTournamentDetail('${d.id}')">
+        <div>
+          <div class="t-name">${t.name}</div>
+          <div class="t-meta">${n} участник${n===1?'':'ов'} · ${new Date(t.createdAt).toLocaleDateString('ru-RU')}</div>
+        </div>
+        <div class="t-code">${t.code}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>';
+  }
+}
+
+async function showTournamentDetail(tid) {
+  document.getElementById('t-main').style.display='none';
+  document.getElementById('t-create').style.display='none';
+  document.getElementById('t-join').style.display='none';
+  document.getElementById('t-detail').style.display='block';
+  document.getElementById('t-detail-name').textContent = 'Загрузка...';
+
+  try {
+    const snap = await getDoc(doc(db,'tournaments',tid));
+    if (!snap.exists()) { toast('Турнир не найден'); showTMain(); return; }
+    currentTournament = {id:tid, ...snap.data()};
+    const t = currentTournament;
+
+    document.getElementById('t-detail-name').textContent = t.name;
+    document.getElementById('t-detail-meta').textContent = `${t.participants?.length||0} участников · Код: ${t.code}`;
+    document.getElementById('t-detail-code').textContent = t.code;
+
+    // participants
+    const parts = document.getElementById('t-participants');
+    parts.innerHTML = (t.participants||[]).map(uid=>{
+      const name = t.participantNames?.[uid]||'Игрок';
+      const photo = t.participantPhotos?.[uid];
+      const finished = t.finished?.[uid];
+      const total = t.totals?.[uid];
+      const avatarHtml = photo
+        ? `<img src="${photo}" class="participant-avatar" alt="">`
+        : `<div class="participant-avatar-placeholder">👤</div>`;
+      return `<div class="participant-row">
+        ${avatarHtml}
+        <div class="participant-name">${name}</div>
+        <div class="participant-status ${finished?'ready':''}">${finished?`✓ ${total} уд.`:'в игре'}</div>
+      </div>`;
+    }).join('');
+
+    // results if all finished
+    const allFinished = (t.participants||[]).every(uid=>t.finished?.[uid]);
+    if (allFinished && Object.keys(t.totals||{}).length > 0) {
+      document.getElementById('t-results-wrap').style.display='block';
+      const sorted = Object.entries(t.totals).sort((a,b)=>a[1]-b[1]);
+      const medals = ['🥇','🥈','🥉'];
+      document.getElementById('t-results').innerHTML = sorted.map(([uid,total],i)=>{
+        const name = t.participantNames?.[uid]||'Игрок';
+        return `<div class="podium-row">
+          <div class="podium-pos">${medals[i]||i+1}</div>
+          <div class="podium-info"><div class="podium-name">${name}</div></div>
+          <div class="podium-score">${total}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // show start button if participant
+    const isParticipant = currentUser && (t.participants||[]).includes(currentUser.uid);
+    const alreadyFinished = currentUser && t.finished?.[currentUser.uid];
+    const startBtn = document.getElementById('t-start-btn');
+    startBtn.style.display = (isParticipant && !alreadyFinished) ? 'block' : 'none';
+  } catch(e) { toast('Ошибка'); console.error(e); }
+}
+
+window.showTournamentDetail = showTournamentDetail;
+
+// ─── TOAST ────────────────────────────────────────────
+window.toast = (msg) => {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+};
+
+// ─── INIT ─────────────────────────────────────────────
+// check resume after auth
+setTimeout(checkResume, 500);
+
+// Export signOut
+window._auth = auth;
 </script>
 </body>
 </html>
