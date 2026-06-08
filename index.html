@@ -528,6 +528,7 @@ function showApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-nav').style.display = 'flex';
   showTab('game');
+  renderGuestList();
   if (currentUser) {
     const greeting = document.getElementById('game-greeting');
     greeting.textContent = `Привет, ${currentUser.displayName?.split(' ')[0] || 'игрок'}! Готов?`;
@@ -595,6 +596,7 @@ window.startTournamentGame = () => {
   document.getElementById('game-play').style.display = 'block';
   document.getElementById('game-results').style.display = 'none';
   showTab('game');
+  renderGuestList();
   renderGame();
   autosave();
 };
@@ -693,12 +695,21 @@ async function showResults() {
   const name = currentUser?.displayName?.split(' ')[0] || 'Гость';
 
   // podium (solo)
-  document.getElementById('podium').innerHTML = `
+  // Build all players podium
+  const allPlayers = [{name, total, isMe:true}];
+  guestPlayers.forEach(g => {
+    const gRec = g.scores.map(toRecorded);
+    const gTotal = gRec.reduce((a,b)=>a+b,0);
+    allPlayers.push({name:g.name, total:gTotal, isMe:false});
+  });
+  allPlayers.sort((a,b)=>a.total-b.total);
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('podium').innerHTML = allPlayers.map((p,i) => `
     <div class="podium-row">
-      <div class="podium-pos gold">🏆</div>
-      <div class="podium-info"><div class="podium-name">${name}</div></div>
-      <div class="podium-score">${total}</div>
-    </div>`;
+      <div class="podium-pos">${medals[i]||i+1}</div>
+      <div class="podium-info"><div class="podium-name">${p.name}${p.isMe?' <span style="font-size:11px;color:var(--green)">(ты)</span>':' <span style="font-size:11px;color:var(--text3)">👤</span>'}</div></div>
+      <div class="podium-score">${p.total}</div>
+    </div>`).join('');
 
   // holes table
   let html = `<table class="holes-table"><thead><tr><th>Игрок</th>`;
@@ -791,6 +802,12 @@ window.saveToSheets = async () => {
   const total = recorded.reduce((a,b)=>a+b,0);
   const name = currentUser?.displayName || 'Гость';
   const rows = [{date:now, round:roundNumber, player:name, total, holes:recorded}];
+  // add guest rows
+  guestPlayers.forEach(g => {
+    const gRec = g.scores.map(toRecorded);
+    const gTotal = gRec.reduce((a,b)=>a+b,0);
+    if (gTotal > 0) rows.push({date:now, round:roundNumber, player:g.name, total:gTotal, holes:gRec});
+  });
   try {
     await fetch(SHEET_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({rows})});
     status.className='sheet-status ok';
