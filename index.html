@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -874,7 +873,12 @@ window.renderProfile = async () => {
     wrap.innerHTML = `<div class="empty"><div class="empty-icon">👤</div><div class="empty-text">Войди в аккаунт чтобы видеть профиль</div><button class="btn btn-primary" style="margin-top:16px" onclick="signInGoogle()">Войти через Google</button></div>`;
     return;
   }
-  if (!userProfile) { wrap.innerHTML='<div class="loading">Загрузка...</div>'; return; }
+  wrap.innerHTML='<div class="loading">Загрузка...</div>';
+  try {
+    const snap = await getDoc(doc(db,'users',currentUser.uid));
+    if (snap.exists()) userProfile = snap.data();
+  } catch(e){}
+  if (!userProfile) { wrap.innerHTML='<div class="loading">Нет данных</div>'; return; }
 
   const games = userProfile.games||[];
   const avg = userProfile.avg||0;
