@@ -209,7 +209,7 @@ input[type=text]:focus{border-color:var(--green)}
 
 <!-- NAV -->
 <nav class="nav" id="main-nav" style="display:none">
-  <div class="nav-logo" onclick="showTab('game')" style="cursor:pointer">⛳ МиниГольф</div>
+  <div class="nav-logo" onclick="goHome()" style="cursor:pointer">⛳ МиниГольф</div>
   <div class="nav-right">
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showTab('game')">Игра</button>
@@ -236,9 +236,22 @@ input[type=text]:focus{border-color:var(--green)}
 
 <!-- GAME SCREEN -->
 <div id="game-screen" class="screen">
-  <div id="game-setup">
+  <div id="resume-banner" style="display:none;background:var(--green-bg);border:1px solid var(--border2);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px">
+      <div style="font-size:14px;font-weight:600;color:var(--green);margin-bottom:4px">⚡ Есть незавершённая игра</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:10px" id="resume-info"></div>
+      <div style="display:flex;gap:8px">
+        <button onclick="resumeGame()" style="flex:1;padding:9px;border-radius:var(--radius-sm);border:none;background:var(--green);color:#fff;font-size:14px;font-weight:600;cursor:pointer">Продолжить</button>
+        <button onclick="discardResume()" style="flex:1;padding:9px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:14px;cursor:pointer">Начать заново</button>
+      </div>
+    </div>
+    <div id="game-setup">
     <div class="page-title">Новая игра</div>
     <div class="page-sub" id="game-greeting">Привет! Готов к игре?</div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">Игроки</div>
+      <div id="guest-players-list"></div>
+      <button class="add-player-btn" onclick="addGuestPlayer()" style="margin-top:8px;margin-bottom:0">+ Добавить гостя</button>
+    </div>
     <div class="toggle-row">
       <div>
         <div class="toggle-label">Сохранить итог публично</div>
@@ -247,6 +260,7 @@ input[type=text]:focus{border-color:var(--green)}
       <label class="toggle"><input type="checkbox" id="save-toggle" checked><span class="toggle-track"></span></label>
     </div>
     <button class="btn btn-primary" onclick="startGame()" style="margin-top:8px">Начать игру →</button>
+  </div>
   </div>
 
   <div id="game-play" style="display:none">
@@ -380,6 +394,12 @@ input[type=text]:focus{border-color:var(--green)}
 <div class="toast" id="toast"></div>
 
 <!-- FIREBASE -->
+<script>
+// Global stubs for onclick handlers — replaced by ES module
+function continueAsGuest() { window.continueAsGuest && window.continueAsGuest(); }
+function signInGoogle() { window.signInGoogle && window.signInGoogle(); }
+function showTab(t) { window._showTab && window._showTab(t) || (window._pendingTab = t); }
+</script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -558,7 +578,7 @@ function showApp() {
 }
 
 // ─── TABS ─────────────────────────────────────────────
-window.showTab = (tab) => {
+window._showTab = window.showTab = (tab) => {
   ['game','profile','rating','holes','tournament'].forEach(t => {
     document.getElementById(t+'-screen').classList.remove('active');
   });
@@ -609,6 +629,42 @@ window.startGame = () => {
   autosave();
 };
 
+
+
+window.resumeGame = () => {
+  try {
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (!d) return;
+    myScores = d.myScores || Array(18).fill(0);
+    guestPlayers = (d.guestPlayers||[]).map(g=>({...g, scores:g.scores||Array(18).fill(0)}));
+    currentHole = d.currentHole || 0;
+    roundNumber = d.roundNumber || 1;
+    savePublic = d.savePublic !== false;
+    activeTournamentId = d.activeTournamentId || null;
+    document.getElementById('resume-banner').style.display = 'none';
+    document.getElementById('game-setup').style.display = 'none';
+    document.getElementById('game-play').style.display = 'block';
+    document.getElementById('game-results').style.display = 'none';
+    renderGame();
+  } catch(e) { console.error(e); }
+};
+
+window.discardResume = () => {
+  clearAutosave();
+  document.getElementById('resume-banner').style.display = 'none';
+  guestPlayers = [];
+  renderGuestList();
+};
+
+
+window.goHome = () => {
+  const gamePlay = document.getElementById('game-play');
+  if (gamePlay && gamePlay.style.display !== 'none') {
+    confirmExitGame();
+  } else {
+    showTab('game');
+  }
+};
 
 window.confirmExitGame = () => {
   if (confirm('Выйти из текущей игры? Прогресс сохранится и можно будет продолжить.')) {
@@ -1370,14 +1426,23 @@ async function loadHolesScreen() {
     const maxAvg = Math.max(...avgs);
     const step = (maxAvg - minAvg) / 5;
 
+    // Sort avgs and split into 5 equal groups by percentile
+    const sortedAvgs = [...avgs].sort((a,b)=>a-b);
+    const n = sortedAvgs.length;
+    const p = [
+      sortedAvgs[Math.floor(n*0.2)] || minAvg,
+      sortedAvgs[Math.floor(n*0.4)] || minAvg,
+      sortedAvgs[Math.floor(n*0.6)] || maxAvg,
+      sortedAvgs[Math.floor(n*0.8)] || maxAvg,
+    ];
+
     function getDifficulty(avg) {
       if (!avg) return {label:'—', color:'var(--text3)', bg:'var(--bg2)'};
-      const pos = (avg - minAvg) / (maxAvg - minAvg);
-      if (pos < 0.2) return {label:'Простая',    color:'#166534', bg:'#dcfce7'};
-      if (pos < 0.4) return {label:'Лёгкая',     color:'#1e5799', bg:'#dbeafe'};
-      if (pos < 0.6) return {label:'Средняя',    color:'#92400e', bg:'#fef3c7'};
-      if (pos < 0.8) return {label:'Сложная',    color:'#9a3412', bg:'#ffedd5'};
-      return               {label:'Очень сложная', color:'#7f1d1d', bg:'#fee2e2'};
+      if (avg <= p[0]) return {label:'Простая',       color:'#166534', bg:'#dcfce7'};
+      if (avg <= p[1]) return {label:'Лёгкая',        color:'#1e5799', bg:'#dbeafe'};
+      if (avg <= p[2]) return {label:'Средняя',       color:'#92400e', bg:'#fef3c7'};
+      if (avg <= p[3]) return {label:'Сложная',       color:'#9a3412', bg:'#ffedd5'};
+      return                  {label:'Очень сложная', color:'#7f1d1d', bg:'#fee2e2'};
     }
 
     // TABLE VIEW
@@ -1400,12 +1465,12 @@ async function loadHolesScreen() {
     });
     const validHoles = holeStats.filter(h=>h.avg>0);
     const totalAvg = validHoles.length ? validHoles.reduce((a,h)=>a+h.avg,0)/validHoles.length : 0;
-    const totalSum = validHoles.length ? validHoles.reduce((a,h)=>a+h.avg,0) : 0;
+    const bestTotal = holeStats.reduce((a,h)=>a+(h.best||0),0);
     tableHtml += `<tr style="border-top:1px solid var(--border2)">
       <td style="padding:8px 4px;font-weight:600;color:var(--text);font-size:11px">Итого</td>
       <td style="padding:8px 4px;text-align:center;font-weight:600;color:var(--green)">${totalAvg.toFixed(1)}</td>
-      <td style="padding:8px 4px;text-align:center;font-weight:600;color:var(--green)">${totalSum.toFixed(0)}</td>
-      <td style="padding:8px 4px;font-size:11px;color:var(--text2)">ср. по полю</td>
+      <td style="padding:8px 4px;text-align:center;font-weight:600;color:var(--green)">${bestTotal}</td>
+      <td style="padding:8px 4px;font-size:11px;color:var(--text2)">ср. / лучший</td>
     </tr>`;
     tableHtml += '</tbody></table>';
     tableView.innerHTML = tableHtml;
@@ -1422,11 +1487,11 @@ async function loadHolesScreen() {
     heatHtml += '</div>';
     const validH = holeStats.filter(h=>h.avg>0);
     const fieldAvg = validH.length ? (validH.reduce((a,h)=>a+h.avg,0)/validH.length).toFixed(1) : '—';
-    const fieldSum = validH.length ? validH.reduce((a,h)=>a+h.avg,0).toFixed(0) : '—';
+    const fieldBest = holeStats.reduce((a,h)=>a+(h.best||0),0);
     heatHtml += `<div style="display:flex;gap:12px;margin-top:10px;padding:10px 12px;background:var(--bg2);border-radius:var(--radius-sm)">
       <div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--text2)">Среднее по полю</div><div style="font-size:18px;font-weight:700;color:var(--green)">${fieldAvg}</div></div>
       <div style="width:1px;background:var(--border)"></div>
-      <div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--text2)">Сумма средних</div><div style="font-size:18px;font-weight:700;color:var(--green)">${fieldSum}</div></div>
+      <div style="flex:1;text-align:center"><div style="font-size:11px;color:var(--text2)">Лучший итог</div><div style="font-size:18px;font-weight:700;color:var(--green)">${fieldBest}</div></div>
     </div>`;
 
     // legend
