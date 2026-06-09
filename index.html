@@ -554,6 +554,54 @@ function checkBadges(scores, allGames, gameDate) {
   return earned;
 }
 
+
+// Версия checkBadges для уже-recorded данных из Firebase (1-5, 6, 7)
+// НЕ применяет toRecorded повторно
+function checkBadgesFromRecorded(recorded, allGames, gameDate) {
+  const earned = [];
+  const total = recorded.filter(s => s > 0).reduce((a,b) => a+b, 0);
+  const holeInOnes = recorded.filter(s => s === 1).length;
+
+  if (holeInOnes >= 1) earned.push('hole_in_one');
+  if (holeInOnes >= 2) earned.push('double_ace');
+  if (holeInOnes >= 3) earned.push('sniper');
+  if (holeInOnes >= 9) earned.push('half_ones');
+  if (!recorded.includes(7)) earned.push('ice');
+  if (recorded.filter(s=>s>0).every(s => s <= 4)) earned.push('sharp');
+  if (recorded.filter(s=>s>0).every(s => s <= 3)) earned.push('perfect');
+  if (total > 0 && total < 50) earned.push('under_50');
+
+  if (gameDate) {
+    const h = gameDate.getHours();
+    if (h < 9) earned.push('early_bird');
+    if (h >= 22) earned.push('night_owl');
+    const day = gameDate.getDay();
+    if (day === 0 || day === 6) earned.push('weekend');
+  }
+
+  if (allGames.length >= 10) earned.push('regular');
+  if (allGames.length >= 25) earned.push('veteran');
+  if (allGames.length >= 100) earned.push('legend_count');
+
+  if (allGames.length >= 2) {
+    const prevBest = Math.min(...allGames.slice(0,-1).map(g => g.total));
+    if (total > 0 && total < prevBest) earned.push('comeback');
+  }
+  if (allGames.length >= 3) {
+    const last3 = allGames.slice(-3).map(g => g.total);
+    if (last3[0] > last3[1] && last3[1] > last3[2]) earned.push('improving');
+  }
+  if (allGames.length >= 5) {
+    const last5 = allGames.slice(-5).map(g => g.total);
+    let streak = true;
+    for (let i = 0; i < last5.length-1; i++) if (last5[i] <= last5[i+1]) { streak = false; break; }
+    if (streak) earned.push('hot_streak');
+    const mn = Math.min(...last5), mx = Math.max(...last5);
+    if (mx - mn <= 3) earned.push('consistent');
+  }
+  return earned;
+}
+
 // ─── AUTH ─────────────────────────────────────────────
 window.signInGoogle = async () => {
   try { await signInWithPopup(auth, provider); }
@@ -615,8 +663,9 @@ function renderNavAvatar() {
     wrap.innerHTML = `<div class="avatar-placeholder" title="Гость">👤</div>`;
     return;
   }
-  if (currentUser.photoURL) {
-    wrap.innerHTML = `<img src="${currentUser.photoURL}" class="avatar" alt="">`;
+  const navPhoto = userProfile?.customPhoto || userProfile?.photo || currentUser.photoURL;
+  if (navPhoto) {
+    wrap.innerHTML = `<img src="${navPhoto}" class="avatar" alt="">`;
   } else {
     wrap.innerHTML = `<div class="avatar-placeholder">${currentUser.displayName?.[0]||'?'}</div>`;
   }
@@ -1240,8 +1289,8 @@ async function recalcAllBadges(uid, silent) {
     const games = profile.games || [];
     if (games.length === 0) return;
 
-    // Накопительный пересчёт: каждая игра видит все предыдущие
-    let allEarned = new Set(profile.badges || []);
+    // Накопительный пересчёт с нуля — чистый пересчёт всех бейджей
+    let allEarned = new Set();
 
     for (let i = 0; i < games.length; i++) {
       const g = games[i];
@@ -1249,13 +1298,13 @@ async function recalcAllBadges(uid, silent) {
       // В Firebase хранятся recorded scores (toRecorded применён).
       // Старые партии: 6 остаётся 6. Новые: 6->7. Передаём как есть —
       // checkBadges работает с любыми значениями корректно.
-      const rawScores = holes;
       const prevGames = games.slice(0, i + 1).map(gg => ({
-        total: gg.total || calcTotal(gg.holes || []),
+        total: gg.total || gg.holes?.filter(s=>s>0).reduce((a,b)=>a+b,0) || 0,
         holes: gg.holes || []
       }));
       const gameDate = g.date ? new Date(g.date) : null;
-      const earned = checkBadges(rawScores, prevGames, gameDate);
+      // Используем checkBadgesFromRecorded — данные уже в recorded формате
+      const earned = checkBadgesFromRecorded(holes, prevGames, gameDate);
       earned.forEach(b => allEarned.add(b));
     }
 
@@ -1295,11 +1344,19 @@ async function recalcAllBadges(uid, silent) {
     const newList = [...allEarned];
     const prevList = profile.badges || [];
     const changed = newList.length !== prevList.length ||
-      newList.some(b => !prevList.includes(b));
+      newList.some(b => !prevList.includes(b)) ||
+      prevList.some(b => !newList.includes(b));
 
-    if (changed) {
+    if (changed || newList.length > 0) {
       await setDoc(userRef, {badges: newList}, {merge: true});
       if (userProfile && userProfile.uid === uid) userProfile.badges = newList;
+      if (!silent && newList.length > 0) {
+        const newOnes = newList.filter(b => !prevList.includes(b));
+        if (newOnes.length > 0) {
+          const names = newOnes.map(id => BADGE_DEFS.find(b=>b.id===id)?.name).filter(Boolean);
+          // не показываем тост тихо
+        }
+      }
       if (!silent) toast(`✅ Бейджи обновлены: ${newList.length} шт.`);
       return newList;
     } else {
@@ -1312,6 +1369,56 @@ async function recalcAllBadges(uid, silent) {
   }
 }
 window.recalcAllBadges = recalcAllBadges;
+
+
+// ─── UPLOAD AVATAR ────────────────────────────────────
+window.uploadAvatar = async (input) => {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { toast('Файл слишком большой (макс 2MB)'); return; }
+
+  toast('Загружаю фото...');
+  try {
+    // Convert to base64 data URL and store in Firestore
+    // (no Firebase Storage needed — store as base64 string, max ~200KB after resize)
+    const resized = await resizeImage(file, 200);
+    const uid = currentUser.uid;
+    await setDoc(doc(db, 'users', uid), {
+      customPhoto: resized,
+      photo: resized,
+      photoURL: resized
+    }, {merge: true});
+    if (userProfile) {
+      userProfile.customPhoto = resized;
+      userProfile.photo = resized;
+    }
+    renderNavAvatar();
+    renderProfile();
+    toast('Фото обновлено ✓');
+  } catch(e) {
+    toast('Ошибка загрузки фото');
+    console.error(e);
+  }
+};
+
+function resizeImage(file, maxSize) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      let w = img.width, h = img.height;
+      if (w > h) { if (w > maxSize) { h = h * maxSize / w; w = maxSize; } }
+      else       { if (h > maxSize) { w = w * maxSize / h; h = maxSize; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
 
 window.renderProfile = async () => {
   const wrap = document.getElementById('profile-content');
@@ -1338,11 +1445,17 @@ window.renderProfile = async () => {
   const rank = userProfile.rank||getRank(999).name;
   const best = userProfile.best||'—';
   const badges = userProfile.badges||[];
-  const photo = currentUser.photoURL;
+  // Берём сначала кастомное фото из Firestore, потом Google photo
+  const photo = userProfile.customPhoto || userProfile.photo || currentUser.photoURL;
 
-  const avatarHtml = photo
-    ? `<img src="${photo}" class="profile-avatar" alt="">`
-    : `<div class="profile-avatar-placeholder">👤</div>`;
+  const avatarHtml = `
+    <div style="position:relative;width:72px;margin:0 auto 12px;cursor:pointer" onclick="document.getElementById('avatar-file-input').click()">
+      ${photo
+        ? `<img src="${photo}" class="profile-avatar" style="margin:0" alt="">`
+        : `<div class="profile-avatar-placeholder" style="margin:0">👤</div>`}
+      <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--green);border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:11px">✏️</div>
+    </div>
+    <input type="file" id="avatar-file-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">`;
 
   const earnedBadges = BADGE_DEFS.filter(b => badges.includes(b.id));
   const badgesHtml = earnedBadges.length > 0
@@ -1381,7 +1494,10 @@ window.renderProfile = async () => {
     ${renderHolesAnalysis(userProfile.holeAvgs)}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="share-btn" onclick="shareProfile()" style="flex:1;justify-content:center">🔗 Поделиться профилем</button>
-      <button class="share-btn" onclick="recalcAllBadges(currentUser.uid,false).then(()=>renderProfile())" title="Пересчитать бейджи из всех партий" style="padding:8px 12px">🏅 Бейджи</button>
+      <button class="share-btn" onclick="recalcAllBadges(currentUser.uid,false).then(()=>renderProfile())" title="Пересчитать бейджи из всех партий" style="padding:8px 12px">🏅 Мои бейджи</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="share-btn" onclick="recalcBadgesForAll()" style="flex:1;justify-content:center" title="Пересчитать бейджи всем игрокам">🔄 Пересчитать бейджи всем игрокам</button>
     </div>
     <button class="btn btn-outline" onclick="window.signOut()" style="margin-top:8px">Выйти</button>`;
 };
@@ -1985,6 +2101,9 @@ window.openPlayerProfile = async (uid) => {
   modal.style.display = 'flex';
   wrap.innerHTML = '<div class="loading">Загрузка...</div>';
   try {
+    // Тихий пересчёт бейджей при открытии любого профиля
+    await recalcAllBadges(uid, true);
+
     const snap = await getDoc(doc(db, 'users', uid));
     if (!snap.exists()) { wrap.innerHTML = '<div class="empty"><div class="empty-text">Профиль не найден</div></div>'; return; }
     const p = snap.data();
@@ -2043,6 +2162,28 @@ window.openPlayerProfile = async (uid) => {
         style="width:100%;justify-content:center;margin-top:4px">🔗 Поделиться профилем</button>`;
   } catch(e) {
     wrap.innerHTML = '<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>';
+    console.error(e);
+  }
+};
+
+
+// ─── RECALC BADGES FOR ALL USERS ─────────────────────
+window.recalcBadgesForAll = async () => {
+  toast('Пересчитываю бейджи... ⏳');
+  try {
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const uids = usersSnap.docs.map(d => d.id);
+    let updated = 0;
+    for (const uid of uids) {
+      try {
+        const result = await recalcAllBadges(uid, true);
+        if (result) updated++;
+      } catch(e) { console.log('skip', uid, e); }
+    }
+    toast(`✅ Готово: обновлено ${updated} из ${uids.length} игроков`);
+    renderProfile(); // обновить свой профиль
+  } catch(e) {
+    toast('Ошибка пересчёта');
     console.error(e);
   }
 };
