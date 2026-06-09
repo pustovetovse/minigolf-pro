@@ -237,6 +237,7 @@ input[type=text]:focus{border-color:var(--green)}
     Войти через Google
   </button>
   <button class="guest-btn" id="btn-guest">Продолжить без входа →</button>
+  <button id="btn-back-to-app" class="guest-btn" style="display:none;color:var(--text2)" onclick="showApp()">← Вернуться в приложение</button>
 </div>
 
 <!-- GAME SCREEN -->
@@ -622,7 +623,9 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
     await loadOrCreateProfile(user);
-    if (!_appShown) { _appShown = true; showApp(); }
+    // Всегда показываем app при входе (даже если уже показывали как гость)
+    _appShown = true;
+    showApp();
   } else {
     // Не залогинен — показываем экран авторизации (не пропускаем его)
     if (!_appShown) {
@@ -672,14 +675,15 @@ async function loadOrCreateProfile(user) {
 function renderNavAvatar() {
   const wrap = document.getElementById('nav-avatar-wrap');
   if (!currentUser) {
-    wrap.innerHTML = `<div class="avatar-placeholder" title="Гость">👤</div>`;
+    // Гость — кнопка входа в навбаре
+    wrap.innerHTML = `<button onclick="window.showAuthScreen()" style="padding:4px 10px;border-radius:20px;border:1px solid var(--green);background:var(--green-bg);color:var(--green);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif">Войти</button>`;
     return;
   }
   const navPhoto = userProfile?.customPhoto || userProfile?.photo || currentUser.photoURL;
   if (navPhoto) {
-    wrap.innerHTML = `<img src="${navPhoto}" class="avatar" alt="">`;
+    wrap.innerHTML = `<img src="${navPhoto}" class="avatar" alt="" onclick="showTab('profile')" style="cursor:pointer">`;
   } else {
-    wrap.innerHTML = `<div class="avatar-placeholder">${currentUser.displayName?.[0]||'?'}</div>`;
+    wrap.innerHTML = `<div class="avatar-placeholder" onclick="showTab('profile')">${currentUser.displayName?.[0]||'?'}</div>`;
   }
 }
 
@@ -748,8 +752,17 @@ window.removeGuest = (i) => {
 
 
 function showAuthScreen() {
+  // Если идёт игра — предупреждаем
+  const gamePlay = document.getElementById('game-play');
+  if (gamePlay && gamePlay.style.display !== 'none') {
+    if (!confirm('Войти через Google? Текущая игра будет сохранена и можно будет продолжить.')) return;
+    autosave();
+  }
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-nav').style.display = 'none';
+  // Показываем кнопку «назад» если уже был в приложении
+  const backBtn = document.getElementById('btn-back-to-app');
+  if (backBtn) backBtn.style.display = _appShown ? 'block' : 'none';
   ['game','profile','rating','holes','tournament'].forEach(t =>
     document.getElementById(t+'-screen').classList.remove('active')
   );
