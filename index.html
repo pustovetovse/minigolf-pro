@@ -458,18 +458,36 @@ function getRank(avg) {
 
 // ─── BADGES ──────────────────────────────────────────
 const BADGE_DEFS = [
-  {id:'hole_in_one',   emoji:'🎯', name:'Хол-ин-ван',      desc:'Забил с 1 удара'},
-  {id:'sniper',        emoji:'⚡', name:'Снайпер',          desc:'3+ хол-ин-вана за партию'},
-  {id:'ice',           emoji:'🧊', name:'Лёд',              desc:'Ни одного счёта 7 в партии'},
-  {id:'sharp',         emoji:'🎯', name:'Меткий',           desc:'Вся партия не более 4 ударов'},
-  {id:'perfect',       emoji:'💎', name:'Идеальная партия', desc:'Вся партия не более 3 ударов'},
-  {id:'regular',       emoji:'🔁', name:'Постоянный',       desc:'10 партий сыграно'},
-  {id:'gold_month',    emoji:'🥇', name:'Золото месяца',    desc:'1 место в рейтинге месяца'},
-  {id:'silver_month',  emoji:'🥈', name:'Серебро месяца',   desc:'2 место в рейтинге месяца'},
-  {id:'bronze_month',  emoji:'🥉', name:'Бронза месяца',    desc:'3 место в рейтинге месяца'},
-  {id:'month_champ',   emoji:'📅', name:'Чемпион месяца',   desc:'Лучший результат за месяц'},
-  {id:'improving',     emoji:'📈', name:'На подъёме',       desc:'3 партии подряд с улучшением'},
-  {id:'record',        emoji:'👑', name:'Рекордсмен',       desc:'Лучший результат за всю историю'},
+  // Разовые достижения за партию
+  {id:'hole_in_one',   emoji:'🎯', name:'Хол-ин-ван',        desc:'Забил с 1 удара'},
+  {id:'sniper',        emoji:'⚡', name:'Снайпер',            desc:'3+ хол-ин-вана за партию'},
+  {id:'double_ace',    emoji:'🎯🎯', name:'Дубль',           desc:'2 хол-ин-вана за партию'},
+  {id:'perfect',       emoji:'💎', name:'Идеальная партия',   desc:'Вся партия ≤3 ударов на лунку'},
+  {id:'sharp',         emoji:'🎯', name:'Меткий',             desc:'Вся партия ≤4 ударов на лунку'},
+  {id:'ice',           emoji:'🧊', name:'Без штрафов',        desc:'Ни одного 7 в партии'},
+  {id:'under_50',      emoji:'🔥', name:'До полтинника',      desc:'Партия меньше 50 ударов'},
+  {id:'half_ones',     emoji:'🌟', name:'Половина единиц',    desc:'9+ лунок забито с 1 удара'},
+  // Прогресс / история
+  {id:'regular',       emoji:'🔁', name:'Постоянный',         desc:'10 партий сыграно'},
+  {id:'veteran',       emoji:'🎖️', name:'Ветеран',           desc:'25 партий сыграно'},
+  {id:'legend_count',  emoji:'💯', name:'Сотня',              desc:'100 партий сыграно'},
+  {id:'improving',     emoji:'📈', name:'На подъёме',         desc:'3 партии подряд лучше предыдущей'},
+  {id:'hot_streak',    emoji:'🔥', name:'В ударе',            desc:'5 партий подряд лучше предыдущей'},
+  {id:'comeback',      emoji:'↩️', name:'Камбэк',            desc:'Улучшил личный рекорд'},
+  {id:'consistent',    emoji:'📊', name:'Стабильный',         desc:'5 партий с разбросом ≤3 удара'},
+  // Рейтинговые
+  {id:'gold_month',    emoji:'🥇', name:'Золото месяца',      desc:'1 место в рейтинге месяца'},
+  {id:'silver_month',  emoji:'🥈', name:'Серебро месяца',     desc:'2 место в рейтинге месяца'},
+  {id:'bronze_month',  emoji:'🥉', name:'Бронза месяца',      desc:'3 место в рейтинге месяца'},
+  {id:'month_champ',   emoji:'📅', name:'Чемпион месяца',     desc:'Лучший средний за месяц'},
+  {id:'record',        emoji:'👑', name:'Рекордсмен',         desc:'Лучший результат за всю историю среди всех'},
+  // Соревновательные
+  {id:'tournament_win',emoji:'🏆', name:'Победитель турнира', desc:'Выиграл турнир'},
+  {id:'social',        emoji:'👥', name:'Компанейский',       desc:'Сыграл с 3+ разными людьми'},
+  // Разное
+  {id:'early_bird',    emoji:'🌅', name:'Ранняя пташка',      desc:'Сыграл до 9 утра'},
+  {id:'night_owl',     emoji:'🦉', name:'Ночная сова',        desc:'Сыграл после 22:00'},
+  {id:'weekend',       emoji:'🌴', name:'Выходной игрок',     desc:'Сыграл в субботу или воскресенье'},
 ];
 
 // score=6 записывается как 7 (штраф)
@@ -480,22 +498,59 @@ function calcTotal(holes) {
   return holes.reduce((a, s) => a + (s > 0 ? toRecorded(s) : 0), 0);
 }
 
-function checkBadges(scores, allGames) {
+function checkBadges(scores, allGames, gameDate) {
   const earned = [];
   const recorded = scores.map(toRecorded);
+  const total = calcTotal(scores);
   const holeInOnes = scores.filter(s=>s===1).length;
 
+  // --- Разовые за партию ---
   if (holeInOnes >= 1) earned.push('hole_in_one');
+  if (holeInOnes >= 2) earned.push('double_ace');
   if (holeInOnes >= 3) earned.push('sniper');
+  if (holeInOnes >= 9) earned.push('half_ones');
   if (!recorded.includes(7)) earned.push('ice');
   if (recorded.every(s=>s<=4)) earned.push('sharp');
   if (recorded.every(s=>s<=3)) earned.push('perfect');
+  if (total > 0 && total < 50) earned.push('under_50');
+
+  // --- Время игры ---
+  if (gameDate) {
+    const h = gameDate.getHours();
+    if (h < 9) earned.push('early_bird');
+    if (h >= 22) earned.push('night_owl');
+    const day = gameDate.getDay();
+    if (day === 0 || day === 6) earned.push('weekend');
+  }
+
+  // --- Прогресс ---
   if (allGames.length >= 10) earned.push('regular');
+  if (allGames.length >= 25) earned.push('veteran');
+  if (allGames.length >= 100) earned.push('legend_count');
+
+  if (allGames.length >= 2) {
+    // comeback: улучшил личный рекорд
+    const prevBest = Math.min(...allGames.slice(0,-1).map(g=>g.total));
+    if (total < prevBest) earned.push('comeback');
+  }
 
   if (allGames.length >= 3) {
     const last3 = allGames.slice(-3).map(g=>g.total);
     if (last3[0] > last3[1] && last3[1] > last3[2]) earned.push('improving');
   }
+
+  if (allGames.length >= 5) {
+    const last5 = allGames.slice(-5).map(g=>g.total);
+    // hot_streak: 5 подряд улучшаются
+    let streak = true;
+    for(let i=0;i<last5.length-1;i++) if(last5[i]<=last5[i+1]) {streak=false;break;}
+    if(streak) earned.push('hot_streak');
+
+    // consistent: разброс ≤3
+    const mn = Math.min(...last5), mx = Math.max(...last5);
+    if(mx - mn <= 3) earned.push('consistent');
+  }
+
   return earned;
 }
 
@@ -953,7 +1008,7 @@ async function saveGameToFirebase(recorded, total, date) {
     const avg = last5.reduce((a,b)=>a+b,0)/last5.length;
     const rank = getRank(avg);
 
-    const newBadges = checkBadges(myScores, games);
+    const newBadges = checkBadges(myScores, games, date);
     const allBadges = [...new Set([...(profile.badges||[]), ...newBadges])];
 
     const best = Math.min(...games.map(g=>g.total));
@@ -1138,31 +1193,7 @@ window.renderProfile = async () => {
     ? earnedBadges.map(b => `<div class="badge" title="${b.desc}">${b.emoji} ${b.name}</div>`).join('')
     : '<div style="color:var(--text3);font-size:13px">Пока нет бейджей</div>';
 
-  // Archive: all games, scrollable horizontal table, collapsible
-  function buildArchiveHtml(gamesList) {
-    if (!gamesList || gamesList.length === 0) return '<div style="color:var(--text3);font-size:13px;padding:8px 0">Нет партий</div>';
-    const rows = [...gamesList].reverse();
-    // header
-    let th = '<tr><th style="text-align:left;padding:4px 6px;color:var(--text3);font-size:10px;white-space:nowrap;border-bottom:1px solid var(--border);background:var(--bg3)">Дата</th>';
-    for(let h=1;h<=18;h++) th += `<th style="padding:4px 3px;color:var(--text3);font-size:10px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg3)">Л${h}</th>`;
-    th += '<th style="padding:4px 6px;color:var(--text3);font-size:10px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg3);border-left:1px solid var(--border)">∑</th></tr>';
-
-    let trs = rows.map(g => {
-      const d = new Date(g.date);
-      const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
-      let cols = `<td style="padding:4px 6px;font-size:11px;white-space:nowrap;color:var(--text2);border-bottom:0.5px solid var(--border)">${ds}</td>`;
-      const holes = g.holes || Array(18).fill(0);
-      holes.forEach(h => {
-        const disp = h > 0 ? h : '—';
-        const col = h===1 ? 'color:#22c55e;font-weight:700' : h>=6 ? 'color:#ef4444' : 'color:var(--text2)';
-        cols += `<td style="padding:4px 3px;font-size:11px;text-align:center;border-bottom:0.5px solid var(--border);${col}">${disp}</td>`;
-      });
-      const tot = g.total || calcTotal(holes);
-      cols += `<td style="padding:4px 6px;font-size:12px;font-weight:700;text-align:center;color:var(--green);border-bottom:0.5px solid var(--border);border-left:1px solid var(--border)">${tot}</td>`;
-      return `<tr>${cols}</tr>`;
-    }).join('');
-    return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px"><table style="border-collapse:collapse;font-size:11px;width:max-content;min-width:100%"><thead>${th}</thead><tbody>${trs}</tbody></table></div>`;
-  }
+  // buildArchiveHtml defined at module scope below
   const archiveHtml = buildArchiveHtml(games);
 
   wrap.innerHTML = `
@@ -1561,12 +1592,14 @@ async function loadBestHoleRating() {
       const moName = mo ? (names[mo.uid]?.name||'?') : '—';
       const atMe = at?.uid === currentUser?.uid;
       const moMe = mo?.uid === currentUser?.uid;
+      const atUid = at?.uid || '';
+      const moUid = mo?.uid || '';
       html += `<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:4px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
         <div style="font-size:11px;font-weight:600;color:var(--text3)">Л${h+1}</div>
-        <div style="font-size:12px;${atMe?'color:var(--green);font-weight:600':'color:var(--text)'}">
+        <div ${atUid ? `data-uid="${atUid}" onclick="openPlayerProfile(this.dataset.uid)"` : ''} style="font-size:12px;${atMe?'color:var(--green);font-weight:600':'color:var(--text)'}${atUid?';cursor:pointer':''}">
           ${atName}${at?` <span style="color:var(--text3)">${at.score}</span>`:''}
         </div>
-        <div style="font-size:12px;${moMe?'color:var(--green);font-weight:600':'color:var(--text2)'}">
+        <div ${moUid ? `data-uid="${moUid}" onclick="openPlayerProfile(this.dataset.uid)"` : ''} style="font-size:12px;${moMe?'color:var(--green);font-weight:600':'color:var(--text2)'}${moUid?';cursor:pointer':''}">
           ${moName}${mo?` <span style="color:var(--text3)">${mo.score}</span>`:''}
         </div>
       </div>`;
@@ -1727,6 +1760,67 @@ async function loadHolesScreen() {
 }
 
 
+
+// Archive: all games, scrollable horizontal table, collapsible
+function buildArchiveHtml(gamesList) {
+if (!gamesList || gamesList.length === 0) return '<div style="color:var(--text3);font-size:13px;padding:8px 0">Нет партий</div>';
+const rows = [...gamesList].reverse();
+// header
+let th = '<tr><th style="text-align:left;padding:4px 6px;color:var(--text3);font-size:10px;white-space:nowrap;border-bottom:1px solid var(--border);background:var(--bg3)">Дата</th>';
+for(let h=1;h<=18;h++) th += `<th style="padding:4px 3px;color:var(--text3);font-size:10px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg3)">Л${h}</th>`;
+th += '<th style="padding:4px 6px;color:var(--text3);font-size:10px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg3);border-left:1px solid var(--border)">∑</th></tr>';
+
+let trs = rows.map(g => {
+  const d = new Date(g.date);
+  const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+  let cols = `<td style="padding:4px 6px;font-size:11px;white-space:nowrap;color:var(--text2);border-bottom:0.5px solid var(--border)">${ds}</td>`;
+  const holes = g.holes || Array(18).fill(0);
+  holes.forEach(h => {
+    const disp = h > 0 ? h : '—';
+    const col = h===1 ? 'color:#22c55e;font-weight:700' : h>=6 ? 'color:#ef4444' : 'color:var(--text2)';
+    cols += `<td style="padding:4px 3px;font-size:11px;text-align:center;border-bottom:0.5px solid var(--border);${col}">${disp}</td>`;
+  });
+  const tot = g.total || calcTotal(holes);
+  cols += `<td style="padding:4px 6px;font-size:12px;font-weight:700;text-align:center;color:var(--green);border-bottom:0.5px solid var(--border);border-left:1px solid var(--border)">${tot}</td>`;
+  return `<tr>${cols}</tr>`;
+}).join('');
+return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px"><table style="border-collapse:collapse;font-size:11px;width:max-content;min-width:100%"><thead>${th}</thead><tbody>${trs}</tbody></table></div>`;
+}
+
+// Helper: holes analysis block from holeAvgs array (used in both profile and modal)
+function buildHolesAnalysisModal(holeAvgs) {
+  if (!holeAvgs || holeAvgs.length < 18) return '';
+  const indexed = holeAvgs.map((avg,i)=>({hole:i+1,avg})).filter(x=>x.avg>0);
+  if (indexed.length === 0) return '';
+  const sorted = [...indexed].sort((a,b)=>a.avg-b.avg);
+  const byStab = [...indexed].sort((a,b)=>Math.abs(a.avg-3)-Math.abs(b.avg-3));
+  const best3 = sorted.slice(0,3);
+  const worst3 = sorted.slice(-3).reverse();
+  const stable3 = byStab.slice(0,3);
+  const row = (items, cls, color) => items.map(x=>
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:0.5px solid var(--border)">
+      <span style="font-size:11px;color:var(--text2)">Л${x.hole}</span>
+      <span style="font-size:12px;font-weight:600;color:${color}">${x.avg.toFixed(1)}</span>
+    </div>`).join('');
+  return `<div class="card">
+    <div class="card-title">Анализ лунок</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:10px 8px">
+        <div style="font-size:10px;font-weight:600;color:var(--green);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;text-align:center">🟢 Лучшие</div>
+        ${row(best3,'green','var(--green)')}
+      </div>
+      <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:10px 8px">
+        <div style="font-size:10px;font-weight:600;color:#60a5fa;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;text-align:center">🔵 Стабильные</div>
+        ${row(stable3,'blue','#60a5fa')}
+      </div>
+      <div style="background:var(--bg3);border-radius:var(--radius-sm);padding:10px 8px">
+        <div style="font-size:10px;font-weight:600;color:var(--red);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;text-align:center">🔴 Сложные</div>
+        ${row(worst3,'red','var(--red)')}
+      </div>
+    </div>
+  </div>`;
+}
+
 // ─── PLAYER PROFILE (PUBLIC) ──────────────────────────
 window.openPlayerProfile = async (uid) => {
   const modal = document.getElementById('player-modal');
@@ -1752,12 +1846,11 @@ window.openPlayerProfile = async (uid) => {
       ? earnedBadges2.map(b => `<div class="badge" title="${b.desc}">${b.emoji} ${b.name}</div>`).join('')
       : '<div style="color:var(--text3);font-size:13px">Пока нет бейджей</div>';
 
-    const recentHtml = games.slice(-3).reverse().map((g,i) =>
-      `<div class="rating-row">
-        <div class="rating-pos" style="color:var(--text3)">${i+1}</div>
-        <div class="rating-info"><div class="rating-name">Партия</div><div class="rating-rank">${new Date(g.date).toLocaleDateString('ru-RU')}</div></div>
-        <div><div class="rating-score">${g.total}</div><div class="rating-score-label">ударов</div></div>
-      </div>`).join('');
+    // Archive table (same as profile)
+    const modalArchiveHtml = buildArchiveHtml(games);
+
+    // Hole analysis from stored holeAvgs
+    const modalHolesHtml = buildHolesAnalysisModal(p.holeAvgs);
 
     const shareUrl = window.location.origin + window.location.pathname + '?user=' + uid;
 
@@ -1777,9 +1870,16 @@ window.openPlayerProfile = async (uid) => {
         <div class="card-title">Бейджи</div>
         <div class="badges-wrap">${badgesHtml}</div>
       </div>
-      <div class="card">
-        <div class="card-title">Последние партии</div>
-        ${recentHtml || '<div style="color:var(--text3);font-size:13px;padding:8px 0">Нет партий</div>'}
+      ${modalHolesHtml}
+      <div class="card" style="padding:0;overflow:hidden">
+        <div onclick="const b=document.getElementById('modal-archive-body');b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.arc-arrow').textContent=b.style.display==='block'?'▲':'▼'"
+          style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:var(--bg2)">
+          <div class="card-title" style="margin:0">Архив партий (${games.length})</div>
+          <span class="arc-arrow" style="font-size:11px;color:var(--text3)">▼</span>
+        </div>
+        <div id="modal-archive-body" style="display:none;padding:8px 12px 12px">
+          ${modalArchiveHtml}
+        </div>
       </div>
       <button class="share-btn"
         onclick="navigator.clipboard.writeText('${shareUrl}').then(()=>window.toast('Ссылка скопирована!')).catch(()=>prompt('Ссылка:','${shareUrl}'))"
