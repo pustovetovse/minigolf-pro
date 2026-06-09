@@ -202,6 +202,12 @@ input[type=text]:focus{border-color:var(--green)}
 /* SHARE */
 .share-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif}
 .share-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* PLAYER MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-sheet{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:20px 16px 40px}
+.modal-handle{width:40px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;border:1px solid var(--border2);background:var(--bg3);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text2)}
 </style>
 </head>
 <body>
@@ -325,7 +331,8 @@ input[type=text]:focus{border-color:var(--green)}
   <div class="rating-tabs">
     <button class="rating-tab active" onclick="switchRating('alltime')">Всё время</button>
     <button class="rating-tab" onclick="switchRating('month')">Месяц</button>
-    <button class="rating-tab" onclick="switchRating('best_hole')">Лучший на лунке</button>
+    <button class="rating-tab" onclick="switchRating('best_hole')">Лунки</button>
+    <button class="rating-tab" onclick="switchRating('badges')">Бейджи</button>
   </div>
   <div id="rating-list"><div class="loading">Загрузка...</div></div>
 </div>
@@ -457,7 +464,9 @@ const BADGE_DEFS = [
   {id:'sharp',         emoji:'🎯', name:'Меткий',           desc:'Вся партия не более 4 ударов'},
   {id:'perfect',       emoji:'💎', name:'Идеальная партия', desc:'Вся партия не более 3 ударов'},
   {id:'regular',       emoji:'🔁', name:'Постоянный',       desc:'10 партий сыграно'},
-  {id:'week_champ',    emoji:'🏆', name:'Чемпион недели',   desc:'Лучший результат за неделю'},
+  {id:'gold_month',    emoji:'🥇', name:'Золото месяца',    desc:'1 место в рейтинге месяца'},
+  {id:'silver_month',  emoji:'🥈', name:'Серебро месяца',   desc:'2 место в рейтинге месяца'},
+  {id:'bronze_month',  emoji:'🥉', name:'Бронза месяца',    desc:'3 место в рейтинге месяца'},
   {id:'month_champ',   emoji:'📅', name:'Чемпион месяца',   desc:'Лучший результат за месяц'},
   {id:'improving',     emoji:'📈', name:'На подъёме',       desc:'3 партии подряд с улучшением'},
   {id:'record',        emoji:'👑', name:'Рекордсмен',       desc:'Лучший результат за всю историю'},
@@ -502,13 +511,25 @@ window.continueAsGuest = () => {
   showApp();
 };
 
+let _appShown = false;
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
     await loadOrCreateProfile(user);
+  }
+  if (!_appShown) {
+    _appShown = true;
     showApp();
   }
 });
+// Fallback: if Firebase auth check takes too long and there's a ?user= param,
+// show app after 2s anyway as guest so the profile link still works
+setTimeout(() => {
+  if (!_appShown) {
+    _appShown = true;
+    showApp();
+  }
+}, 2000);
 
 async function loadOrCreateProfile(user) {
   const ref = doc(db, 'users', user.uid);
@@ -602,12 +623,22 @@ window.removeGuest = (i) => {
 function showApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-nav').style.display = 'flex';
-  showTab('game');
   renderGuestList();
   if (currentUser) {
     const greeting = document.getElementById('game-greeting');
     greeting.textContent = `Привет, ${currentUser.displayName?.split(' ')[0] || 'игрок'}! Готов?`;
   }
+  // Check ?user= param — open public profile
+  const params = new URLSearchParams(window.location.search);
+  const targetUid = params.get('user');
+  if (targetUid) {
+    showTab('rating');
+    setTimeout(() => openPlayerProfile(targetUid), 300);
+  } else {
+    showTab('game');
+  }
+  // Init theme button visual state
+  updateThemeBtn();
 }
 window.showApp = showApp;
 
@@ -633,19 +664,24 @@ window.showTab = (tab) => {
 window.toggleTheme = () => {
   isDark = !isDark;
   document.documentElement.setAttribute('data-theme', isDark ? '' : 'light');
+  updateThemeBtn();
+};
+
+function updateThemeBtn() {
   const btn = document.getElementById('theme-btn');
-  // тёмный режим → кнопка тёмная с солнышком (намекает на переключение в светлый)
-  // светлый режим → кнопка тёмная (#1a1a2e) с луной (намекает на переключение в тёмный)
+  if (!btn) return;
   if (isDark) {
+    // тёмный режим — кнопка СВЕТЛАЯ, иконка солнышко
     btn.textContent = '☀️';
-    btn.style.background = 'var(--bg3)';
-    btn.style.borderColor = 'var(--border2)';
+    btn.style.background = 'rgba(255,255,255,0.92)';
+    btn.style.borderColor = 'rgba(255,255,255,0.7)';
   } else {
+    // светлый режим — кнопка ТЁМНАЯ, иконка луна
     btn.textContent = '🌙';
     btn.style.background = '#1a1a2e';
     btn.style.borderColor = '#3a3a5e';
   }
-};
+}
 
 // ─── GAME ─────────────────────────────────────────────
 function getTodayKey() {
@@ -938,6 +974,42 @@ async function saveGameToFirebase(recorded, total, date) {
 
     userProfile = {...profile, games, avg, rank:rank.name, badges:allBadges, best, holeAvgs};
 
+    // Check monthly ranking badges
+    try {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1); startOfMonth.setHours(0,0,0,0);
+      const monthSnap = await getDocs(query(collection(db,'games'), where('date','>=',startOfMonth.toISOString()), orderBy('date','asc')));
+      const monthGames = monthSnap.docs.map(d=>d.data());
+      const byUserMonth = {};
+      for (const g of monthGames) {
+        if (!g.uid) continue;
+        const t = g.holes && g.holes.length===18 ? calcTotal(g.holes) : g.total;
+        if (typeof t !== 'number') continue;
+        if (!byUserMonth[g.uid]) byUserMonth[g.uid] = {sum:0,count:0,best:Infinity};
+        byUserMonth[g.uid].sum += t; byUserMonth[g.uid].count++;
+        if (t < byUserMonth[g.uid].best) byUserMonth[g.uid].best = t;
+      }
+      for (const u of Object.keys(byUserMonth)) { byUserMonth[u].avg = byUserMonth[u].sum/byUserMonth[u].count; }
+      const monthSorted = Object.keys(byUserMonth).sort((a,b) => {
+        const da = byUserMonth[a], db2 = byUserMonth[b];
+        if (da.avg !== db2.avg) return da.avg - db2.avg;
+        return da.best - db2.best;
+      });
+      const myPos = monthSorted.indexOf(uid);
+      const monthBadges = [];
+      if (myPos === 0) monthBadges.push('gold_month', 'month_champ');
+      else if (myPos === 1) monthBadges.push('silver_month');
+      else if (myPos === 2) monthBadges.push('bronze_month');
+      if (monthBadges.length > 0) {
+        const combinedBadges = [...new Set([...allBadges, ...monthBadges])];
+        if (combinedBadges.length > allBadges.length) {
+          await setDoc(doc(db,'users',uid), {badges: combinedBadges}, {merge:true});
+          userProfile.badges = combinedBadges;
+          newBadges.push(...monthBadges.filter(b => !allBadges.includes(b)));
+        }
+      }
+    } catch(e2) { console.log('monthly badge check:', e2); }
+
     if (newBadges.length > 0) {
       const names = newBadges.map(id=>BADGE_DEFS.find(b=>b.id===id)?.name).filter(Boolean);
       setTimeout(()=>toast(`🏅 Новый бейдж: ${names.join(', ')}`), 1000);
@@ -1061,17 +1133,37 @@ window.renderProfile = async () => {
     ? `<img src="${photo}" class="profile-avatar" alt="">`
     : `<div class="profile-avatar-placeholder">👤</div>`;
 
-  const badgesHtml = BADGE_DEFS.map(b=>{
-    const earned = badges.includes(b.id);
-    return `<div class="badge ${earned?'':'locked'}" title="${b.desc}">${b.emoji} ${b.name}</div>`;
-  }).join('');
+  const earnedBadges = BADGE_DEFS.filter(b => badges.includes(b.id));
+  const badgesHtml = earnedBadges.length > 0
+    ? earnedBadges.map(b => `<div class="badge" title="${b.desc}">${b.emoji} ${b.name}</div>`).join('')
+    : '<div style="color:var(--text3);font-size:13px">Пока нет бейджей</div>';
 
-  const recentHtml = games.slice(-5).reverse().map((g,i)=>`
-    <div class="rating-row">
-      <div class="rating-pos" style="color:var(--text3)">${i+1}</div>
-      <div class="rating-info"><div class="rating-name">Партия</div><div class="rating-rank">${new Date(g.date).toLocaleDateString('ru-RU')}</div></div>
-      <div><div class="rating-score">${g.total}</div><div class="rating-score-label">ударов</div></div>
-    </div>`).join('');
+  // Archive: all games, scrollable horizontal table, collapsible
+  function buildArchiveHtml(gamesList) {
+    if (!gamesList || gamesList.length === 0) return '<div style="color:var(--text3);font-size:13px;padding:8px 0">Нет партий</div>';
+    const rows = [...gamesList].reverse();
+    // header
+    let th = '<tr><th style="text-align:left;padding:4px 6px;color:var(--text3);font-size:10px;white-space:nowrap;border-bottom:1px solid var(--border);background:var(--bg3)">Дата</th>';
+    for(let h=1;h<=18;h++) th += `<th style="padding:4px 3px;color:var(--text3);font-size:10px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg3)">Л${h}</th>`;
+    th += '<th style="padding:4px 6px;color:var(--text3);font-size:10px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg3);border-left:1px solid var(--border)">∑</th></tr>';
+
+    let trs = rows.map(g => {
+      const d = new Date(g.date);
+      const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+      let cols = `<td style="padding:4px 6px;font-size:11px;white-space:nowrap;color:var(--text2);border-bottom:0.5px solid var(--border)">${ds}</td>`;
+      const holes = g.holes || Array(18).fill(0);
+      holes.forEach(h => {
+        const disp = h > 0 ? h : '—';
+        const col = h===1 ? 'color:#22c55e;font-weight:700' : h>=6 ? 'color:#ef4444' : 'color:var(--text2)';
+        cols += `<td style="padding:4px 3px;font-size:11px;text-align:center;border-bottom:0.5px solid var(--border);${col}">${disp}</td>`;
+      });
+      const tot = g.total || calcTotal(holes);
+      cols += `<td style="padding:4px 6px;font-size:12px;font-weight:700;text-align:center;color:var(--green);border-bottom:0.5px solid var(--border);border-left:1px solid var(--border)">${tot}</td>`;
+      return `<tr>${cols}</tr>`;
+    }).join('');
+    return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px"><table style="border-collapse:collapse;font-size:11px;width:max-content;min-width:100%"><thead>${th}</thead><tbody>${trs}</tbody></table></div>`;
+  }
+  const archiveHtml = buildArchiveHtml(games);
 
   wrap.innerHTML = `
     <div class="profile-header">
@@ -1089,9 +1181,15 @@ window.renderProfile = async () => {
       <div class="card-title">Бейджи</div>
       <div class="badges-wrap">${badgesHtml}</div>
     </div>
-    <div class="card">
-      <div class="card-title">Последние партии</div>
-      ${recentHtml || '<div class="empty-text" style="padding:16px 0;color:var(--text3)">Ещё нет партий</div>'}
+    <div class="card" style="padding:0;overflow:hidden">
+      <div onclick="document.getElementById('archive-body').style.display=document.getElementById('archive-body').style.display==='none'?'block':'none';this.querySelector('.arc-arrow').textContent=document.getElementById('archive-body').style.display==='block'?'▲':'▼'"
+        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;background:var(--bg2)">
+        <div class="card-title" style="margin:0">Архив партий (${games.length})</div>
+        <span class="arc-arrow" style="font-size:11px;color:var(--text3)">▼</span>
+      </div>
+      <div id="archive-body" style="display:none;padding:8px 12px 12px">
+        ${archiveHtml}
+      </div>
     </div>
     ${renderHolesAnalysis(userProfile.holeAvgs)}
     <div style="display:flex;gap:8px;margin-top:12px">
@@ -1113,9 +1211,10 @@ window.shareProfile = () => {
 window.switchRating = (mode) => {
   ratingMode = mode;
   document.querySelectorAll('#rating-screen .rating-tab').forEach((b,i)=>b.classList.toggle('active',
-    (i===0&&mode==='alltime')||(i===1&&mode==='month')||(i===2&&mode==='best_hole')
+    (i===0&&mode==='alltime')||(i===1&&mode==='month')||(i===2&&mode==='best_hole')||(i===3&&mode==='badges')
   ));
   if (mode === 'best_hole') loadBestHoleRating();
+  else if (mode === 'badges') loadBadgesRating();
   else loadRating();
 };
 
@@ -1230,7 +1329,8 @@ async function loadRating() {
           displayAvg = typeof u.avg === 'number' ? u.avg : stats?.avg;
         }
 
-        return `<div style="background:var(--bg2);border:1px solid ${isMe?'var(--green)':'var(--border)'};border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center">
+        const cardBorder = isMe ? 'var(--green)' : 'var(--border)';
+        return `<div data-uid="${uid}" onclick="openPlayerProfile(this.dataset.uid)" style="background:var(--bg2);border:1px solid ${cardBorder};border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;cursor:pointer">
           <div style="font-size:18px">${posEmoji[i] || i+1}</div>
           ${avatarHtml}
           <div style="font-size:13px;font-weight:600;color:${isMe?'var(--green)':'var(--text)'};line-height:1.2">${u.name}${isMe?'<br><span style="font-size:10px">ты</span>':''}</div>
@@ -1626,6 +1726,161 @@ async function loadHolesScreen() {
   }
 }
 
+
+// ─── PLAYER PROFILE (PUBLIC) ──────────────────────────
+window.openPlayerProfile = async (uid) => {
+  const modal = document.getElementById('player-modal');
+  const wrap = document.getElementById('player-modal-content');
+  modal.style.display = 'flex';
+  wrap.innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (!snap.exists()) { wrap.innerHTML = '<div class="empty"><div class="empty-text">Профиль не найден</div></div>'; return; }
+    const p = snap.data();
+    const games = p.games || [];
+    const rank = p.rank || '🌱 Новичок';
+    const best = p.best || '—';
+    const badges = p.badges || [];
+    const isMe = uid === currentUser?.uid;
+
+    const avatarHtml = p.photo
+      ? `<img src="${p.photo}" style="width:72px;height:72px;border-radius:50%;border:3px solid var(--green);object-fit:cover;margin:0 auto 12px;display:block" alt="">`
+      : `<div style="width:72px;height:72px;border-radius:50%;border:3px solid var(--green);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px">👤</div>`;
+
+    const earnedBadges2 = BADGE_DEFS.filter(b => badges.includes(b.id));
+    const badgesHtml = earnedBadges2.length > 0
+      ? earnedBadges2.map(b => `<div class="badge" title="${b.desc}">${b.emoji} ${b.name}</div>`).join('')
+      : '<div style="color:var(--text3);font-size:13px">Пока нет бейджей</div>';
+
+    const recentHtml = games.slice(-3).reverse().map((g,i) =>
+      `<div class="rating-row">
+        <div class="rating-pos" style="color:var(--text3)">${i+1}</div>
+        <div class="rating-info"><div class="rating-name">Партия</div><div class="rating-rank">${new Date(g.date).toLocaleDateString('ru-RU')}</div></div>
+        <div><div class="rating-score">${g.total}</div><div class="rating-score-label">ударов</div></div>
+      </div>`).join('');
+
+    const shareUrl = window.location.origin + window.location.pathname + '?user=' + uid;
+
+    wrap.innerHTML = `
+      <div style="text-align:center;padding:8px 0 16px">
+        ${avatarHtml}
+        <div style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px">${p.name||'Игрок'}${isMe?' <span style="font-size:12px;color:var(--green)">(ты)</span>':''}</div>
+        <div class="rank-badge">${rank}</div>
+      </div>
+      <div class="stats-grid" style="margin-bottom:12px">
+        <div class="stat-card"><div class="stat-val">${games.length}</div><div class="stat-label">Партий</div></div>
+        <div class="stat-card"><div class="stat-val">${best}</div><div class="stat-label">Лучший</div></div>
+        <div class="stat-card"><div class="stat-val">${p.avg||'—'}</div><div class="stat-label">Средний</div></div>
+        <div class="stat-card"><div class="stat-val">${badges.length}</div><div class="stat-label">Бейджей</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Бейджи</div>
+        <div class="badges-wrap">${badgesHtml}</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Последние партии</div>
+        ${recentHtml || '<div style="color:var(--text3);font-size:13px;padding:8px 0">Нет партий</div>'}
+      </div>
+      <button class="share-btn"
+        onclick="navigator.clipboard.writeText('${shareUrl}').then(()=>window.toast('Ссылка скопирована!')).catch(()=>prompt('Ссылка:','${shareUrl}'))"
+        style="width:100%;justify-content:center;margin-top:4px">🔗 Поделиться профилем</button>`;
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>';
+    console.error(e);
+  }
+};
+
+window.closePlayerModal = (e) => {
+  if (e.target === document.getElementById('player-modal')) {
+    document.getElementById('player-modal').style.display = 'none';
+  }
+};
+
+// ─── BADGES RATING ────────────────────────────────────
+async function loadBadgesRating() {
+  const list = document.getElementById('rating-list');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const allUsers = usersSnap.docs.map(d => ({uid:d.id, ...d.data()})).filter(u => u.badges && u.badges.length > 0);
+
+    if (allUsers.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">🏅</div><div class="empty-text">Пока никто не заработал бейджи</div></div>';
+      return;
+    }
+
+    let html = '';
+    for (const b of BADGE_DEFS) {
+      const holders = allUsers.filter(u => u.badges.includes(b.id));
+      if (holders.length === 0) continue;
+      const isMe = currentUser && holders.some(u => u.uid === currentUser.uid);
+      const tooltipId = 'badge-tooltip-' + b.id;
+
+      const avatarPreviews = holders.slice(0,4).map(u =>
+        u.photo
+          ? `<img src="${u.photo}" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border);object-fit:cover;margin-left:-4px" alt="">`
+          : `<div style="width:22px;height:22px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;margin-left:-4px">👤</div>`
+      ).join('');
+      const extraCount = holders.length > 4 ? `<div style="font-size:10px;color:var(--text3);margin-left:6px">+${holders.length-4}</div>` : '';
+
+      const holdersListHtml = holders.map(u =>
+        `<div data-uid="${u.uid}" onclick="closeBadgeTooltips();openPlayerProfile(this.dataset.uid)"
+          style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:0.5px solid var(--border);cursor:pointer;border-radius:6px"
+          onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='transparent'">
+          ${u.photo
+            ? `<img src="${u.photo}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0" alt="">`
+            : `<div style="width:24px;height:24px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">👤</div>`}
+          <div style="font-size:12px;font-weight:${u.uid===currentUser?.uid?'600':'400'};color:${u.uid===currentUser?.uid?'var(--green)':'var(--text)'}">${u.name||'Игрок'}${u.uid===currentUser?.uid?' (ты)':''}</div>
+        </div>`
+      ).join('');
+
+      html += `<div style="background:var(--bg2);border:1px solid ${isMe?'var(--green)':'var(--border)'};border-radius:var(--radius);padding:14px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:28px;flex-shrink:0">${b.emoji}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600;color:${isMe?'var(--green)':'var(--text)'}">${b.name}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px">${b.desc}</div>
+          </div>
+          <div style="position:relative;flex-shrink:0">
+            <div onclick="toggleBadgeTooltip('${tooltipId}')"
+              style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;background:var(--gold-bg);border:1px solid rgba(245,158,11,0.3);cursor:pointer;font-size:13px;font-weight:600;color:var(--gold)">
+              ${holders.length} <span style="font-size:11px;font-weight:400;margin-left:2px">игр.</span>
+            </div>
+            <div id="${tooltipId}" style="display:none;position:absolute;right:0;top:36px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:8px;z-index:50;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,0.4)">
+              ${holdersListHtml}
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;margin-top:10px;padding-left:4px;gap:0">${avatarPreviews}${extraCount}</div>
+      </div>`;
+    }
+
+    list.innerHTML = html;
+  } catch(e) {
+    list.innerHTML = '<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>';
+    console.error(e);
+  }
+}
+
+window.toggleBadgeTooltip = (id) => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  closeBadgeTooltips();
+  if (!isOpen) el.style.display = 'block';
+};
+
+window.closeBadgeTooltips = () => {
+  document.querySelectorAll('[id^="badge-tooltip-"]').forEach(el => el.style.display = 'none');
+};
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('[id^="badge-tooltip-"]') && !e.target.closest('[onclick*="toggleBadgeTooltip"]')) {
+    closeBadgeTooltips();
+  }
+});
+
+
 // ─── AUTH BUTTONS ─────────────────────────────────────
 document.getElementById('btn-google')?.addEventListener('click', async () => {
   try { await signInWithPopup(auth, provider); }
@@ -1635,5 +1890,15 @@ document.getElementById('btn-guest')?.addEventListener('click', () => {
   currentUser = null; guestPlayers = []; showApp();
 });
 </script>
+
+<!-- PLAYER PROFILE MODAL -->
+<div id="player-modal" style="display:none" class="modal-overlay" onclick="closePlayerModal(event)">
+  <div class="modal-sheet" style="position:relative">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="document.getElementById('player-modal').style.display='none'">✕</button>
+    <div id="player-modal-content"><div class="loading">Загрузка...</div></div>
+  </div>
+</div>
+
 </body>
 </html>
