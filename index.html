@@ -1522,7 +1522,7 @@ window.renderProfile = async () => {
       <button class="share-btn" onclick="recalcBadgesForAll()" style="flex:1;justify-content:center" title="Пересчитать бейджи всем игрокам">🔄 Пересчитать бейджи всем игрокам</button>
     </div>
     <button class="btn btn-outline" onclick="window.signOut()" style="margin-top:8px">Выйти</button>
-    <button class="btn btn-outline" onclick="window.diagData()" style="margin-top:8px;font-size:12px;color:var(--text3)">🔍 Диагностика данных</button>`;
+    ${window._myUid === "Nre0thXLkuRwf5PInsEiTP2qko13" ? '<button class="btn btn-outline" onclick="window.diagData()" style="margin-top:8px;font-size:12px;color:var(--text3)">🔍 Диагностика данных</button>' : ''}` ;
 };
 
 window.shareProfile = () => {
