@@ -1166,7 +1166,9 @@ async function saveGuestToFirebase(guestName, rawScores, date) {
       return vals.reduce((a,g) => a + g.holes[i], 0) / vals.length;
     });
 
-    const newBadges = checkBadges(rawScores, games, date);
+    // rawScores — сырые (1-6), но recorded уже создан выше
+    // Передаём recorded в checkBadgesFromRecorded
+    const newBadges = checkBadgesFromRecorded(recorded, games, date);
     const allBadges = [...new Set([...(profile.badges||[]), ...newBadges])];
 
     await setDoc(userRef, {
@@ -1284,10 +1286,43 @@ async function recalcAllBadges(uid, silent) {
   try {
     const userRef = doc(db, 'users', uid);
     const snap = await getDoc(userRef);
-    if (!snap.exists()) return;
+    if (!snap.exists()) return [];
     const profile = snap.data();
-    const games = profile.games || [];
-    if (games.length === 0) return;
+
+    // Берём игры из профиля, либо из коллекции games если профиль пустой
+    let games = profile.games || [];
+    if (games.length === 0) {
+      try {
+        const gSnap = await getDocs(query(
+          collection(db, 'games'),
+          where('uid', '==', uid),
+          orderBy('date', 'asc')
+        ));
+        games = gSnap.docs.map(d => d.data());
+        // Если нашли игры — сразу пишем их в профиль
+        if (games.length > 0) {
+          const tots = games.map(g => g.total || g.holes?.filter(s=>s>0).reduce((a,b)=>a+b,0) || 0);
+          const last5 = tots.slice(-5);
+          const avg = last5.reduce((a,b)=>a+b,0) / last5.length;
+          const best = Math.min(...tots);
+          const holeAvgs = Array(18).fill(0).map((_,i) => {
+            const vals = games.filter(g => g.holes && g.holes[i] > 0);
+            if (!vals.length) return 0;
+            return vals.reduce((a,g) => a + g.holes[i], 0) / vals.length;
+          });
+          await setDoc(userRef, {
+            games: games.map(g => ({
+              total: g.total, holes: g.holes, date: g.date
+            })),
+            avg: Math.round(avg*10)/10,
+            best,
+            rank: getRank(avg).name,
+            holeAvgs
+          }, {merge: true});
+        }
+      } catch(e2) { console.log('games fallback error:', e2); }
+    }
+    if (games.length === 0) return [];
 
     // Накопительный пересчёт с нуля — чистый пересчёт всех бейджей
     let allEarned = new Set();
@@ -1295,9 +1330,6 @@ async function recalcAllBadges(uid, silent) {
     for (let i = 0; i < games.length; i++) {
       const g = games[i];
       const holes = g.holes || [];
-      // В Firebase хранятся recorded scores (toRecorded применён).
-      // Старые партии: 6 остаётся 6. Новые: 6->7. Передаём как есть —
-      // checkBadges работает с любыми значениями корректно.
       const prevGames = games.slice(0, i + 1).map(gg => ({
         total: gg.total || gg.holes?.filter(s=>s>0).reduce((a,b)=>a+b,0) || 0,
         holes: gg.holes || []
@@ -2177,7 +2209,7 @@ window.recalcBadgesForAll = async () => {
     for (const uid of uids) {
       try {
         const result = await recalcAllBadges(uid, true);
-        if (result) updated++;
+        if (result !== undefined && result !== null) updated++;
       } catch(e) { console.log('skip', uid, e); }
     }
     toast(`✅ Готово: обновлено ${updated} из ${uids.length} игроков`);
