@@ -410,7 +410,7 @@ input[type=text]:focus{border-color:var(--green)}
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, addDoc, updateDoc, arrayUnion, onSnapshot, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, addDoc, updateDoc, deleteDoc, arrayUnion, onSnapshot, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBsNOGmjp6BRzysvGU4gKS9-6CbqYYMS80",
@@ -2538,6 +2538,16 @@ window.diagData = async () => {
       }
     };
     wrap.appendChild(syncBtn);
+
+    const cleanupBtn = document.createElement('button');
+    cleanupBtn.textContent = '🧹 Убрать дубль guest_Евгений Борзов';
+    cleanupBtn.style.cssText = 'padding:8px 16px;background:#dc2626;color:#fff;border:none;border-radius:8px;cursor:pointer;margin:8px;font-size:12px';
+    cleanupBtn.onclick = () => {
+      if (confirm('Удалить дубли guest_Евгений Борзов и слить с DEO5YNYP2GMXnlQhBz6mEBCcWXo2?')) {
+        window.cleanupGuestDuplicate('guest_Евгений Борзов', 'DEO5YNYP2GMXnlQhBz6mEBCcWXo2');
+      }
+    };
+    wrap.appendChild(cleanupBtn);
   } catch(e) { window.toast('Ошибка: ' + e.message); console.error(e); }
 };
 
@@ -2657,6 +2667,71 @@ window.syncAllToSheets = async () => {
   } catch(e) {
     window.toast('Ошибка: ' + e.message);
     console.error(e);
+  }
+};
+
+
+// ─── CLEANUP DUPLICATE GAMES ─────────────────
+window.cleanupGuestDuplicate = async (guestUid, realUid) => {
+  try {
+    window.toast('Ищу дубли...');
+    console.log('[cleanup] guest:', guestUid, '→ real:', realUid);
+
+    // Найти все партии guest uid
+    const guestSnap = await getDocs(query(
+      collection(db, 'games'), where('uid', '==', guestUid)
+    ));
+    console.log('[cleanup] guest games found:', guestSnap.docs.length);
+
+    // Найти все партии real uid
+    const realSnap = await getDocs(query(
+      collection(db, 'games'), where('uid', '==', realUid)
+    ));
+
+    // Собрать ключи реальных партий
+    const realKeys = new Set();
+    realSnap.docs.forEach(d => {
+      const g = d.data();
+      const holes = (g.holes||[]).filter(s=>s>0).join(',');
+      const day = (g.date||'').substring(0,10);
+      realKeys.add(day + '|' + holes);
+    });
+
+    let deleted = 0;
+    let kept = 0;
+    for (const d of guestSnap.docs) {
+      const g = d.data();
+      const holes = (g.holes||[]).filter(s=>s>0).join(',');
+      const day = (g.date||'').substring(0,10);
+      const key = day + '|' + holes;
+
+      if (realKeys.has(key)) {
+        // Дубль — удаляем гостевую копию
+        await deleteDoc(d.ref);
+        console.log('[cleanup] deleted duplicate:', key);
+        deleted++;
+      } else {
+        // Не дубль — переносим под реальный uid
+        await updateDoc(d.ref, {uid: realUid});
+        console.log('[cleanup] moved to real uid:', key);
+        kept++;
+      }
+    }
+
+    // Пометить гостевой профиль как слитый
+    await setDoc(doc(db, 'users', guestUid), {
+      mergedInto: realUid, mergedAt: new Date().toISOString()
+    }, {merge: true});
+
+    window.toast('✅ Удалено дублей: ' + deleted + ', перенесено: ' + kept);
+    console.log('[cleanup] done. deleted:', deleted, 'moved:', kept);
+
+    // Пересчитать бейджи
+    await recalcAllBadges(realUid, true);
+    setTimeout(() => window.diagData(), 800);
+  } catch(e) {
+    console.error('[cleanup]', e);
+    window.toast('Ошибка: ' + e.message);
   }
 };
 
