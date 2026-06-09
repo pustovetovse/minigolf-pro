@@ -332,9 +332,8 @@ input[type=text]:focus{border-color:var(--green)}
 <div id="rating-screen" class="screen">
   <div class="page-title">Рейтинг</div>
   <div class="page-sub">Лучшие игроки</div>
-  <div class="rating-tabs" style="flex-wrap:wrap;gap:3px">
+  <div class="rating-tabs">
     <button class="rating-tab active" onclick="switchRating('alltime')">Ср. счёт</button>
-    <button class="rating-tab" onclick="switchRating('month')">Месяц</button>
     <button class="rating-tab" onclick="switchRating('top_games')">Топ партий</button>
     <button class="rating-tab" onclick="switchRating('best_hole')">Лунки</button>
     <button class="rating-tab" onclick="switchRating('badges')">Бейджи</button>
@@ -1624,7 +1623,7 @@ window.shareProfile = () => {
 // ─── RATING ───────────────────────────────────────────
 window.switchRating = (mode) => {
   ratingMode = mode;
-  const modes = ['alltime','month','top_games','best_hole','badges'];
+  const modes = ['alltime','top_games','best_hole','badges'];
   document.querySelectorAll('#rating-screen .rating-tab').forEach((b,i) =>
     b.classList.toggle('active', modes[i] === mode)
   );
