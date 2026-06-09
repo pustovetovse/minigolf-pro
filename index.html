@@ -404,7 +404,7 @@ input[type=text]:focus{border-color:var(--green)}
 <!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, addDoc, updateDoc, arrayUnion, onSnapshot, where, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -979,6 +979,13 @@ async function showResults() {
     await saveGameToFirebase(recorded, total, now);
   }
 
+  // Сохраняем гостей в Firebase (guest_<имя>)
+  for (const g of guestPlayers) {
+    if (g.scores.some(s => s > 0)) {
+      await saveGuestToFirebase(g.name, g.scores, now);
+    }
+  }
+
   if (activeTournamentId && currentUser) {
     await updateDoc(doc(db,'tournaments',activeTournamentId),{
       [`finished.${currentUser.uid}`]: true,
@@ -1070,6 +1077,61 @@ async function saveGameToFirebase(recorded, total, date) {
       setTimeout(()=>toast(`🏅 Новый бейдж: ${names.join(', ')}`), 1000);
     }
   } catch(e) { console.error(e); }
+}
+
+// ─── SAVE GUEST TO FIREBASE ──────────────────────────
+async function saveGuestToFirebase(guestName, rawScores, date) {
+  try {
+    const uid = 'guest_' + guestName.trim();
+    const recorded = rawScores.map(toRecorded);
+    const total = calcTotal(rawScores);
+    if (total === 0) return;
+
+    // Save game to games collection
+    await addDoc(collection(db, 'games'), {
+      uid, total, holes: recorded,
+      date: date.toISOString(),
+      round: roundNumber,
+      tournamentId: activeTournamentId || null
+    });
+
+    // Update guest user profile
+    const userRef = doc(db, 'users', uid);
+    const snap = await getDoc(userRef);
+    const profile = snap.exists() ? snap.data() : {
+      uid, name: guestName.trim(), photo: null, isGuest: true,
+      games: [], badges: [], createdAt: Date.now()
+    };
+
+    const games = profile.games || [];
+    games.push({total, holes: recorded, date: date.toISOString()});
+
+    const last5 = games.slice(-5).map(g => g.total);
+    const avg = last5.reduce((a,b) => a+b, 0) / last5.length;
+    const rank = getRank(avg);
+    const best = Math.min(...games.map(g => g.total));
+
+    const holeAvgs = Array(18).fill(0).map((_,i) => {
+      const vals = games.filter(g => g.holes && g.holes[i] > 0);
+      if (!vals.length) return 0;
+      return vals.reduce((a,g) => a + g.holes[i], 0) / vals.length;
+    });
+
+    const newBadges = checkBadges(rawScores, games, date);
+    const allBadges = [...new Set([...(profile.badges||[]), ...newBadges])];
+
+    await setDoc(userRef, {
+      ...profile,
+      games, avg: Math.round(avg*10)/10,
+      rank: rank.name, badges: allBadges, best,
+      lastGame: date.toISOString(), holeAvgs
+    }, {merge: true});
+
+    if (newBadges.length > 0) {
+      const names = newBadges.map(id => BADGE_DEFS.find(b => b.id===id)?.name).filter(Boolean);
+      setTimeout(() => toast(`🏅 ${guestName}: ${names.join(', ')}`), 1500);
+    }
+  } catch(e) { console.error('saveGuestToFirebase:', e); }
 }
 
 window.saveToSheets = async () => {
@@ -1164,6 +1226,93 @@ function renderHolesAnalysis(holeAvgs) {
 }
 
 // ─── PROFILE ──────────────────────────────────────────
+
+// ─── RECALC ALL BADGES ────────────────────────────────
+// Пересчитывает все бейджи из сохранённых партий.
+// Вызывается при открытии профиля (тихо, если нет расхождений)
+// и явно по кнопке.
+async function recalcAllBadges(uid, silent) {
+  try {
+    const userRef = doc(db, 'users', uid);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) return;
+    const profile = snap.data();
+    const games = profile.games || [];
+    if (games.length === 0) return;
+
+    // Накопительный пересчёт: каждая игра видит все предыдущие
+    let allEarned = new Set(profile.badges || []);
+
+    for (let i = 0; i < games.length; i++) {
+      const g = games[i];
+      const holes = g.holes || [];
+      // В Firebase хранятся recorded scores (toRecorded применён).
+      // Старые партии: 6 остаётся 6. Новые: 6->7. Передаём как есть —
+      // checkBadges работает с любыми значениями корректно.
+      const rawScores = holes;
+      const prevGames = games.slice(0, i + 1).map(gg => ({
+        total: gg.total || calcTotal(gg.holes || []),
+        holes: gg.holes || []
+      }));
+      const gameDate = g.date ? new Date(g.date) : null;
+      const earned = checkBadges(rawScores, prevGames, gameDate);
+      earned.forEach(b => allEarned.add(b));
+    }
+
+    // Месячные бейджи — пересчитаем из всех игр этого месяца
+    try {
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1); startOfMonth.setHours(0,0,0,0);
+      const monthSnap = await getDocs(query(
+        collection(db,'games'),
+        where('date','>=',startOfMonth.toISOString()),
+        orderBy('date','asc')
+      ));
+      const monthGames = monthSnap.docs.map(d=>d.data());
+      const byUserMonth = {};
+      for (const g of monthGames) {
+        if (!g.uid) continue;
+        const t = g.holes && g.holes.length===18 ? calcTotal(g.holes) : g.total;
+        if (typeof t !== 'number') continue;
+        if (!byUserMonth[g.uid]) byUserMonth[g.uid] = {sum:0,count:0,best:Infinity};
+        byUserMonth[g.uid].sum += t; byUserMonth[g.uid].count++;
+        if (t < byUserMonth[g.uid].best) byUserMonth[g.uid].best = t;
+      }
+      for (const u of Object.keys(byUserMonth)) {
+        byUserMonth[u].avg = byUserMonth[u].sum / byUserMonth[u].count;
+      }
+      const monthSorted = Object.keys(byUserMonth).sort((a,b) => {
+        const da = byUserMonth[a], db2 = byUserMonth[b];
+        if (da.avg !== db2.avg) return da.avg - db2.avg;
+        return da.best - db2.best;
+      });
+      const pos = monthSorted.indexOf(uid);
+      if (pos === 0) { allEarned.add('gold_month'); allEarned.add('month_champ'); }
+      else if (pos === 1) allEarned.add('silver_month');
+      else if (pos === 2) allEarned.add('bronze_month');
+    } catch(e2) { console.log('monthly recalc:', e2); }
+
+    const newList = [...allEarned];
+    const prevList = profile.badges || [];
+    const changed = newList.length !== prevList.length ||
+      newList.some(b => !prevList.includes(b));
+
+    if (changed) {
+      await setDoc(userRef, {badges: newList}, {merge: true});
+      if (userProfile && userProfile.uid === uid) userProfile.badges = newList;
+      if (!silent) toast(`✅ Бейджи обновлены: ${newList.length} шт.`);
+      return newList;
+    } else {
+      if (!silent) toast('Бейджи актуальны');
+      return newList;
+    }
+  } catch(e) {
+    console.error('recalcAllBadges:', e);
+    if (!silent) toast('Ошибка пересчёта');
+  }
+}
+window.recalcAllBadges = recalcAllBadges;
+
 window.renderProfile = async () => {
   const wrap = document.getElementById('profile-content');
   if (!currentUser) {
@@ -1176,6 +1325,13 @@ window.renderProfile = async () => {
     if (snap.exists()) userProfile = snap.data();
   } catch(e){}
   if (!userProfile) { wrap.innerHTML='<div class="loading">Нет данных</div>'; return; }
+
+  // Тихо пересчитываем бейджи при открытии профиля
+  // (чтобы старые партии тоже учитывались)
+  try {
+    const updatedBadges = await recalcAllBadges(currentUser.uid, true);
+    if (updatedBadges && userProfile) userProfile.badges = updatedBadges;
+  } catch(e) {}
 
   const games = userProfile.games||[];
   const avg = userProfile.avg||0;
@@ -1225,6 +1381,7 @@ window.renderProfile = async () => {
     ${renderHolesAnalysis(userProfile.holeAvgs)}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="share-btn" onclick="shareProfile()" style="flex:1;justify-content:center">🔗 Поделиться профилем</button>
+      <button class="share-btn" onclick="recalcAllBadges(currentUser.uid,false).then(()=>renderProfile())" title="Пересчитать бейджи из всех партий" style="padding:8px 12px">🏅 Бейджи</button>
     </div>
     <button class="btn btn-outline" onclick="window.signOut()" style="margin-top:8px">Выйти</button>`;
 };
