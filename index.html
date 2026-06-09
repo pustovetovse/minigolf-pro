@@ -1414,6 +1414,15 @@ window.uploadAvatar = async (input) => {
       userProfile.customPhoto = resized;
       userProfile.photo = resized;
     }
+    // Обновляем фото в активных турнирах
+    try {
+      const tSnap = await getDocs(query(collection(db,'tournaments'), where('status','==','open')));
+      for (const td of tSnap.docs) {
+        if ((td.data().participants||[]).includes(uid)) {
+          await updateDoc(doc(db,'tournaments',td.id), {[`participantPhotos.${uid}`]: resized});
+        }
+      }
+    } catch(e2) { console.log('tournament photo update:', e2); }
     renderNavAvatar();
     renderProfile();
     toast('Фото обновлено ✓');
@@ -1598,7 +1607,7 @@ async function loadRating() {
         if (s.exists()) {
           names[uid] = {
             name:  s.data().name  || 'Игрок',
-            photo: s.data().photo || s.data().photoURL || null,
+            photo: s.data().customPhoto || s.data().photo || s.data().photoURL || null,
             rank:  s.data().rank  || '🌱 Новичок',
             avg:   s.data().avg   ?? '—'
           };
@@ -1705,7 +1714,7 @@ window.createTournament = async () => {
       status: 'open',
       participants: [uid],
       participantNames: {[uid]: currentUser.displayName||'Игрок'},
-      participantPhotos: {[uid]: currentUser.photoURL||null},
+      participantPhotos: {[uid]: userProfile?.customPhoto||userProfile?.photo||currentUser.photoURL||null},
       scores: {}, finished: {}, totals: {}
     });
     toast(`Турнир создан! Код: ${code}`);
@@ -1727,7 +1736,7 @@ window.joinTournament = async () => {
       await updateDoc(doc(db,'tournaments',tid),{
         participants: arrayUnion(uid),
         [`participantNames.${uid}`]: currentUser.displayName||'Игрок',
-        [`participantPhotos.${uid}`]: currentUser.photoURL||null
+        [`participantPhotos.${uid}`]: userProfile?.customPhoto||userProfile?.photo||currentUser.photoURL||null
       });
     }
     toast('Присоединился к турниру!');
@@ -1848,7 +1857,7 @@ async function loadBestHoleRating() {
     for (const uid of uids) {
       try {
         const s = await getDoc(doc(db,'users',uid));
-        if (s.exists()) names[uid] = {name:s.data().name||'Игрок', photo:s.data().photo||null};
+        if (s.exists()) names[uid] = {name:s.data().name||'Игрок', photo:s.data().customPhoto||s.data().photo||null};
       } catch(e){}
     }
 
@@ -2150,8 +2159,8 @@ window.openPlayerProfile = async (uid) => {
     const badges = p.badges || [];
     const isMe = uid === currentUser?.uid;
 
-    const avatarHtml = p.photo
-      ? `<img src="${p.photo}" style="width:72px;height:72px;border-radius:50%;border:3px solid var(--green);object-fit:cover;margin:0 auto 12px;display:block" alt="">`
+    const avatarHtml = (p.customPhoto||p.photo)
+      ? `<img src="${p.customPhoto||p.photo}" style="width:72px;height:72px;border-radius:50%;border:3px solid var(--green);object-fit:cover;margin:0 auto 12px;display:block" alt="">`
       : `<div style="width:72px;height:72px;border-radius:50%;border:3px solid var(--green);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px">👤</div>`;
 
     const earnedBadges2 = BADGE_DEFS.filter(b => badges.includes(b.id));
@@ -2238,7 +2247,7 @@ async function loadBadgesRating() {
   list.innerHTML = '<div class="loading">Загрузка...</div>';
   try {
     const usersSnap = await getDocs(collection(db, 'users'));
-    const allUsers = usersSnap.docs.map(d => ({uid:d.id, ...d.data()})).filter(u => u.badges && u.badges.length > 0);
+    const allUsers = usersSnap.docs.map(d => { const p=d.data(); return {uid:d.id, ...p, photo:p.customPhoto||p.photo||null}; }).filter(u => u.badges && u.badges.length > 0);
 
     if (allUsers.length === 0) {
       list.innerHTML = '<div class="empty"><div class="empty-icon">🏅</div><div class="empty-text">Пока никто не заработал бейджи</div></div>';
