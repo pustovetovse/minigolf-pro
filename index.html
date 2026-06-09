@@ -332,9 +332,10 @@ input[type=text]:focus{border-color:var(--green)}
 <div id="rating-screen" class="screen">
   <div class="page-title">Рейтинг</div>
   <div class="page-sub">Лучшие игроки</div>
-  <div class="rating-tabs">
-    <button class="rating-tab active" onclick="switchRating('alltime')">Всё время</button>
+  <div class="rating-tabs" style="flex-wrap:wrap;gap:3px">
+    <button class="rating-tab active" onclick="switchRating('alltime')">Ср. счёт</button>
     <button class="rating-tab" onclick="switchRating('month')">Месяц</button>
+    <button class="rating-tab" onclick="switchRating('top_games')">Топ партий</button>
     <button class="rating-tab" onclick="switchRating('best_hole')">Лунки</button>
     <button class="rating-tab" onclick="switchRating('badges')">Бейджи</button>
   </div>
@@ -1623,11 +1624,13 @@ window.shareProfile = () => {
 // ─── RATING ───────────────────────────────────────────
 window.switchRating = (mode) => {
   ratingMode = mode;
-  document.querySelectorAll('#rating-screen .rating-tab').forEach((b,i)=>b.classList.toggle('active',
-    (i===0&&mode==='alltime')||(i===1&&mode==='month')||(i===2&&mode==='best_hole')||(i===3&&mode==='badges')
-  ));
+  const modes = ['alltime','month','top_games','best_hole','badges'];
+  document.querySelectorAll('#rating-screen .rating-tab').forEach((b,i) =>
+    b.classList.toggle('active', modes[i] === mode)
+  );
   if (mode === 'best_hole') loadBestHoleRating();
   else if (mode === 'badges') loadBadgesRating();
+  else if (mode === 'top_games') loadTopGames();
   else loadRating();
 };
 
@@ -1916,6 +1919,79 @@ window.toast = (msg) => {
 setTimeout(checkResume, 500);
 window._auth = auth;
 window.signOut = () => signOut(auth).then(()=>location.reload()).catch(()=>location.reload());
+
+
+// ─── TOP GAMES RATING ────────────────────────────────
+async function loadTopGames() {
+  const list = document.getElementById('rating-list');
+  list.innerHTML = '<div class="loading">Загрузка...</div>';
+  try {
+    // Загружаем все партии, сортируем по total asc, берём топ-10
+    const snap = await getDocs(query(collection(db,'games'), orderBy('date','asc')));
+    const allGames = snap.docs.map(d => d.data())
+      .filter(g => g.holes && g.holes.length === 18 && g.uid);
+
+    // Пересчитываем total напрямую
+    const withTotal = allGames.map(g => ({
+      ...g,
+      realTotal: g.holes.filter(s=>s>0).reduce((a,b)=>a+b,0)
+    })).filter(g => g.realTotal > 0);
+
+    // Сортируем и берём топ-10
+    const top10 = [...withTotal].sort((a,b) => a.realTotal - b.realTotal).slice(0,10);
+
+    if (top10.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">🏌️</div><div class="empty-text">Нет данных</div></div>';
+      return;
+    }
+
+    // Загружаем имена
+    const uids = [...new Set(top10.map(g=>g.uid))];
+    const names = {};
+    for (const uid of uids) {
+      try {
+        const s = await getDoc(doc(db,'users',uid));
+        if (s.exists()) names[uid] = {
+          name: s.data().name || 'Игрок',
+          photo: s.data().customPhoto || s.data().photo || null
+        };
+      } catch(e){}
+    }
+
+    const medals = ['🥇','🥈','🥉'];
+    list.innerHTML = top10.map((g, i) => {
+      const u = names[g.uid] || {name:'Игрок', photo:null};
+      const isMe = g.uid === window._myUid;
+      const dateStr = g.date ? new Date(g.date).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'}) : '';
+      const avatarHtml = u.photo
+        ? `<img src="${u.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border2);flex-shrink:0" alt="">`
+        : `<div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">👤</div>`;
+
+      // Мини-спарклайн лунок
+      const holes = g.holes || [];
+      const sparkCells = holes.map(h => {
+        if (!h) return `<span style="color:var(--text3);font-size:9px">·</span>`;
+        const col = h<=2?'#22c55e': h===3?'#eab308': h===4?'#f97316':'#ef4444';
+        return `<span style="color:${col};font-size:9px;font-weight:600">${h}</span>`;
+      }).join('<span style="color:var(--border);font-size:8px">·</span>');
+
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openPlayerProfile('${g.uid}')">
+        <div style="font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;min-width:28px;color:${i<3?'var(--gold)':'var(--text3)'}">${medals[i]||i+1}</div>
+        ${avatarHtml}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:${isMe?'var(--green)':'var(--text)'}">${u.name}${isMe?' <span style="font-size:10px">(ты)</span>':''}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden">${sparkCells}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:1px">${dateStr}</div>
+        </div>
+        <div style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:700;color:var(--green)">${g.realTotal}</div>
+      </div>`;
+    }).join('');
+
+  } catch(e) {
+    list.innerHTML = `<div class="empty"><div class="empty-text">Ошибка загрузки</div></div>`;
+    console.error(e);
+  }
+}
 
 // ─── BEST HOLE RATING ─────────────────────────────────
 async function loadBestHoleRating() {
@@ -2441,7 +2517,146 @@ window.diagData = async () => {
     diagClose.style.cssText = 'padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;margin:8px';
     diagClose.onclick = () => { document.getElementById('player-modal').style.display = 'none'; };
     wrap.appendChild(diagClose);
+
+    // Кнопка слияния Иван Ш. → Иван Шипов
+    const mergeBtn = document.createElement('button');
+    mergeBtn.textContent = '🔀 Слить guest_Иван Ш. → Иван Шипов';
+    mergeBtn.style.cssText = 'padding:8px 16px;background:#7c3aed;color:#fff;border:none;border-radius:8px;cursor:pointer;margin:8px;font-size:12px';
+    mergeBtn.onclick = () => {
+      if (confirm('Слить guest_Иван Ш. в dk62D8cd6HfbT8MzYggXStwq9a83?')) {
+        window.mergeGuestIntoUser('guest_Иван Ш.', 'dk62D8cd6HfbT8MzYggXStwq9a83');
+      }
+    };
+    wrap.appendChild(mergeBtn);
+
+    const syncBtn = document.createElement('button');
+    syncBtn.textContent = '📊 Синхронизировать всё в Google Sheets';
+    syncBtn.style.cssText = 'padding:8px 16px;background:#0369a1;color:#fff;border:none;border-radius:8px;cursor:pointer;margin:8px;font-size:12px';
+    syncBtn.onclick = () => {
+      if (confirm('Отправить все партии из Firebase в Google Sheets?')) {
+        window.syncAllToSheets();
+      }
+    };
+    wrap.appendChild(syncBtn);
   } catch(e) { window.toast('Ошибка: ' + e.message); console.error(e); }
+};
+
+
+// ─── MERGE GUEST INTO USER ────────────────────────────
+window.mergeGuestIntoUser = async (guestUid, targetUid) => {
+  try {
+    window.toast('Начинаю слияние...');
+    console.log('[merge] from', guestUid, 'into', targetUid);
+
+    // 1. Загрузить обоих
+    const guestSnap = await getDoc(doc(db, 'users', guestUid));
+    const targetSnap = await getDoc(doc(db, 'users', targetUid));
+    if (!guestSnap.exists()) { window.toast('Гостевой профиль не найден'); return; }
+    if (!targetSnap.exists()) { window.toast('Целевой профиль не найден'); return; }
+
+    const guestData = guestSnap.data();
+    const targetData = targetSnap.data();
+
+    // 2. Перенести партии из коллекции games
+    const gamesSnap = await getDocs(query(
+      collection(db, 'games'), where('uid', '==', guestUid)
+    ));
+    console.log('[merge] games to move:', gamesSnap.docs.length);
+    for (const d of gamesSnap.docs) {
+      await updateDoc(doc(db, 'games', d.id), {uid: targetUid});
+    }
+
+    // 3. Объединить массив games в профиле
+    const guestGames = guestData.games || [];
+    const targetGames = targetData.games || [];
+    // Добавляем только те которых нет (по дате)
+    const targetDates = new Set(targetGames.map(g => g.date));
+    const newGames = guestGames.filter(g => !targetDates.has(g.date));
+    const mergedGames = [...targetGames, ...newGames]
+      .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    // 4. Пересчитать avg, best, holeAvgs
+    const tots = mergedGames.map(g => g.total || g.holes?.filter(s=>s>0).reduce((a,b)=>a+b,0) || 0);
+    const last5 = tots.slice(-5);
+    const avg = last5.reduce((a,b)=>a+b,0) / last5.length;
+    const best = Math.min(...tots);
+    const holeAvgs = Array(18).fill(0).map((_,i) => {
+      const vals = mergedGames.filter(g => g.holes && g.holes[i] > 0).map(g => g.holes[i]);
+      return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+    });
+
+    // 5. Обновить целевой профиль
+    await setDoc(doc(db, 'users', targetUid), {
+      games: mergedGames,
+      avg: Math.round(avg*10)/10,
+      best, holeAvgs,
+      rank: getRank(avg).name
+    }, {merge: true});
+
+    // 6. Пересчитать бейджи для объединённого профиля
+    await recalcAllBadges(targetUid, true);
+
+    // 7. Пометить гостевой профиль как слитый (не удаляем — безопаснее)
+    await setDoc(doc(db, 'users', guestUid), {
+      mergedInto: targetUid, mergedAt: new Date().toISOString()
+    }, {merge: true});
+
+    console.log('[merge] done! merged', newGames.length, 'new games');
+    window.toast('✅ Слияние готово! Перенесено: ' + newGames.length + ' партий');
+
+    // Обновить диагностику
+    setTimeout(() => window.diagData(), 500);
+  } catch(e) {
+    console.error('[merge] error:', e);
+    window.toast('Ошибка: ' + e.message);
+  }
+};
+
+
+// ─── SYNC ALL FIREBASE GAMES TO SHEETS ───────────────
+window.syncAllToSheets = async () => {
+  window.toast('Синхронизирую с Google Sheets... ⏳');
+  try {
+    // Загрузить все партии из Firebase
+    const gamesSnap = await getDocs(collection(db, 'games'));
+    const allGames = gamesSnap.docs.map(d => d.data())
+      .filter(g => g.holes && g.holes.length === 18 && g.uid)
+      .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    // Загрузить имена
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const names = {};
+    usersSnap.docs.forEach(d => { names[d.id] = d.data().name || d.id; });
+
+    // Собрать строки
+    const rows = allGames.map(g => ({
+      date: new Date(g.date).toLocaleString('ru-RU'),
+      round: g.round || 1,
+      player: names[g.uid] || g.uid,
+      total: g.holes.filter(s=>s>0).reduce((a,b)=>a+b,0),
+      holes: g.holes
+    }));
+
+    console.log('[syncSheets] sending', rows.length, 'rows');
+
+    // Отправляем батчами по 20 (Apps Script может упасть на большом теле)
+    const BATCH = 20;
+    for (let i = 0; i < rows.length; i += BATCH) {
+      const batch = rows.slice(i, i + BATCH);
+      await fetch(SHEET_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({rows: batch, syncMode: true})
+      });
+      window.toast(`Отправлено ${Math.min(i+BATCH, rows.length)} из ${rows.length}...`);
+      await new Promise(r => setTimeout(r, 300)); // небольшая пауза
+    }
+
+    window.toast('✅ Синхронизировано: ' + rows.length + ' партий');
+  } catch(e) {
+    window.toast('Ошибка: ' + e.message);
+    console.error(e);
+  }
 };
 
 // ─── AUTH BUTTONS ─────────────────────────────────────
