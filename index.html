@@ -654,6 +654,7 @@ async function loadOrCreateProfile(user) {
       setDoc(doc(db,'users',user.uid), {photo: user.photoURL, photoURL: user.photoURL}, {merge:true}).catch(()=>{});
     }
   }
+  window._myUid = user.uid;
   renderNavAvatar();
 }
 
@@ -1515,13 +1516,13 @@ window.renderProfile = async () => {
     ${renderHolesAnalysis(userProfile.holeAvgs)}
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="share-btn" onclick="shareProfile()" style="flex:1;justify-content:center">🔗 Поделиться профилем</button>
-      <button class="share-btn" onclick="recalcAllBadges(currentUser.uid,false).then(()=>renderProfile())" title="Пересчитать бейджи из всех партий" style="padding:8px 12px">🏅 Мои бейджи</button>
+      <button class="share-btn" onclick="recalcAllBadges(window._myUid,false).then(b=>{if(b)renderProfile();})" title="Пересчитать бейджи из всех партий" style="padding:8px 12px">🏅 Мои бейджи</button>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="share-btn" onclick="recalcBadgesForAll()" style="flex:1;justify-content:center" title="Пересчитать бейджи всем игрокам">🔄 Пересчитать бейджи всем игрокам</button>
     </div>
     <button class="btn btn-outline" onclick="window.signOut()" style="margin-top:8px">Выйти</button>
-    <button class="btn btn-outline" onclick="diagData()" style="margin-top:8px;font-size:12px;color:var(--text3)">🔍 Диагностика данных</button>`;
+    <button class="btn btn-outline" onclick="window.diagData()" style="margin-top:8px;font-size:12px;color:var(--text3)">🔍 Диагностика данных</button>`;
 };
 
 window.shareProfile = () => {
@@ -2293,6 +2294,47 @@ document.addEventListener('click', (e) => {
   }
 });
 
+
+
+window.recalcMyBadges = async () => {
+  const uid = window._myUid;
+  if (!uid) { window.toast('Нужно войти в аккаунт'); return; }
+  window.toast('Пересчитываю...');
+  const badges = await recalcAllBadges(uid, true);
+  window.toast(badges && badges.length > 0 ? '✅ Бейджи: ' + badges.length + ' шт.' : 'Бейджей пока нет');
+  if (badges) window.renderProfile();
+};
+
+window.diagData = async () => {
+  try {
+    const out = [];
+    const usersSnap = await getDocs(collection(db, 'users'));
+    out.push('=== USERS (' + usersSnap.docs.length + ') ===');
+    for (const d of usersSnap.docs) {
+      const p = d.data();
+      out.push(d.id.slice(0,14) + ' | ' + p.name + ' | games:' + (p.games||[]).length + ' | avg:' + p.avg + ' | badges:' + (p.badges||[]).length + ' ' + JSON.stringify(p.badges||[]));
+    }
+    const gamesSnap = await getDocs(collection(db, 'games'));
+    out.push('');
+    out.push('=== GAMES (' + gamesSnap.docs.length + ') ===');
+    for (const d of gamesSnap.docs) {
+      const g = d.data();
+      const ct = g.holes ? g.holes.filter(s=>s>0).reduce((a,b)=>a+b,0) : '?';
+      out.push((g.uid||'').slice(0,14) + ' | stored:' + g.total + ' | calc:' + ct + ' | ' + (g.date||'').slice(0,10));
+    }
+    const text = out.join('\n');
+    console.log(text);
+    const modal = document.getElementById('player-modal');
+    const wrap = document.getElementById('player-modal-content');
+    modal.style.display = 'flex';
+            wrap.innerHTML = '<div style="font-family:monospace;font-size:10px;white-space:pre-wrap;color:var(--text);padding:8px;max-height:70vh;overflow-y:auto">' + text + '</div>';
+    const diagClose = document.createElement('button');
+    diagClose.textContent = 'Закрыть';
+    diagClose.style.cssText = 'padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:8px;cursor:pointer;margin:8px';
+    diagClose.onclick = () => { document.getElementById('player-modal').style.display = 'none'; };
+    wrap.appendChild(diagClose);
+  } catch(e) { window.toast('Ошибка: ' + e.message); console.error(e); }
+};
 
 // ─── AUTH BUTTONS ─────────────────────────────────────
 document.getElementById('btn-google')?.addEventListener('click', async () => {
