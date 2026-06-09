@@ -2013,46 +2013,37 @@ async function loadBestHoleRating() {
       } catch(e){}
     }
 
-    function getBestPerHole(games) {
-      const best = {};
-      for (const g of games) {
-        if (!g.uid || !g.holes) continue;
-        g.holes.forEach((h,i) => {
-          if (h <= 0) return;
-          const key = i;
-          if (!best[key] || h < best[key].score || (h === best[key].score && new Date(g.date) < new Date(best[key].date))) {
-            best[key] = {uid: g.uid, score: h, date: g.date};
-          }
-        });
-      }
-      return best;
+    // Сортируем игры по дате чтобы при равном счёте побеждал тот кто сыграл раньше
+    const sortedGames = [...allGames].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    // При равном счёте — побеждает первый по времени (уже отсортировано)
+    const best = {};
+    for (const g of sortedGames) {
+      if (!g.uid || !g.holes) continue;
+      g.holes.forEach((h,i) => {
+        if (h <= 0) return;
+        if (!best[i] || h < best[i].score) {
+          best[i] = {uid: g.uid, score: h, date: g.date};
+        }
+        // При равном счёте — уже стоит более ранний (т.к. отсортировано), не меняем
+      });
     }
 
-    const allTimeBest = getBestPerHole(allGames);
-    const monthBest = getBestPerHole(monthGames);
-
-    let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;padding:6px;background:var(--bg2);border-radius:var(--radius-sm)">Всё время</div>
-      <div style="font-size:11px;font-weight:500;color:var(--text2);text-align:center;padding:6px;background:var(--bg2);border-radius:var(--radius-sm)">Этот месяц</div>
-    </div>`;
-
+    let html = '';
     for (let h=0; h<18; h++) {
-      const at = allTimeBest[h];
-      const mo = monthBest[h];
-      const atName = at ? (names[at.uid]?.name||'?') : '—';
-      const moName = mo ? (names[mo.uid]?.name||'?') : '—';
-      const atMe = at?.uid === currentUser?.uid;
-      const moMe = mo?.uid === currentUser?.uid;
-      const atUid = at?.uid || '';
-      const moUid = mo?.uid || '';
-      html += `<div style="display:grid;grid-template-columns:28px 1fr 1fr;gap:4px;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--border)">
-        <div style="font-size:11px;font-weight:600;color:var(--text3)">Л${h+1}</div>
-        <div ${atUid ? `data-uid="${atUid}" onclick="openPlayerProfile(this.dataset.uid)"` : ''} style="font-size:12px;${atMe?'color:var(--green);font-weight:600':'color:var(--text)'}${atUid?';cursor:pointer':''}">
-          ${atName}${at?` <span style="color:var(--text3)">${at.score}</span>`:''}
+      const b = best[h];
+      if (!b) continue;
+      const bName = names[b.uid]?.name || '?';
+      const bMe = b.uid === currentUser?.uid;
+      const bUid = b.uid || '';
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);min-width:28px">Л${h+1}</div>
+        <div ${bUid?`data-uid="${bUid}" onclick="openPlayerProfile(this.dataset.uid)"`:''}
+          style="flex:1;font-size:13px;font-weight:${bMe?'700':'500'};color:${bMe?'var(--green)':'var(--text)'};${bUid?'cursor:pointer':''}">
+          ${bName}
         </div>
-        <div ${moUid ? `data-uid="${moUid}" onclick="openPlayerProfile(this.dataset.uid)"` : ''} style="font-size:12px;${moMe?'color:var(--green);font-weight:600':'color:var(--text2)'}${moUid?';cursor:pointer':''}">
-          ${moName}${mo?` <span style="color:var(--text3)">${mo.score}</span>`:''}
-        </div>
+        <div style="font-family:'Unbounded',sans-serif;font-size:16px;font-weight:700;color:var(--green)">${b.score}</div>
+        <div style="font-size:10px;color:var(--text3);min-width:40px;text-align:right">${b.date?b.date.substring(5,10):''}</div>
       </div>`;
     }
 
