@@ -2066,26 +2066,29 @@ function holeColor(h) {
 }
 
 // Заголовок — только номер без "Л", маленький padding
-const cellW = 'padding:2px 1px;text-align:center;';
+// Считаем ширины: дата=32px, итого=24px, остаток делим на 18 лунок
+const dateW = 'width:32px;min-width:32px;';
+const totW  = 'width:24px;min-width:24px;';
+const cellW = 'text-align:center;';
 let th = '<tr>'
-  + '<th style="text-align:left;padding:3px 5px;color:var(--text3);font-size:10px;border-bottom:1px solid var(--border);background:var(--bg3)">Дата</th>';
+  + `<th style="${dateW}text-align:left;padding:3px 4px;color:var(--text3);font-size:10px;border-bottom:1px solid var(--border);background:var(--bg3)">Дата</th>`;
 for(let h=1;h<=18;h++) {
-  th += `<th style="${cellW}color:var(--text3);font-size:9px;border-bottom:1px solid var(--border);background:var(--bg3);min-width:14px">${h}</th>`;
+  th += `<th style="${cellW}padding:3px 0;color:var(--text3);font-size:9px;border-bottom:1px solid var(--border);background:var(--bg3)">${h}</th>`;
 }
-th += '<th style="padding:3px 5px;color:var(--text3);font-size:10px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg3);border-left:1px solid var(--border)">∑</th></tr>';
+th += `<th style="${totW}${cellW}padding:3px 4px;color:var(--text3);font-size:10px;border-bottom:1px solid var(--border);background:var(--bg3);border-left:1px solid var(--border)">∑</th></tr>`;
 
 let trs = rows.map(g => {
   const d = new Date(g.date);
   const ds = d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
-  let cols = `<td style="padding:3px 5px;font-size:10px;white-space:nowrap;color:var(--text2);border-bottom:0.5px solid var(--border)">${ds}</td>`;
+  let cols = `<td style="${dateW}padding:3px 4px;font-size:10px;white-space:nowrap;color:var(--text2);border-bottom:0.5px solid var(--border)">${ds}</td>`;
   const holes = g.holes || Array(18).fill(0);
   holes.forEach(h => {
     const disp = h > 0 ? h : '·';
     const col = holeColor(h);
-    cols += `<td style="${cellW}font-size:11px;border-bottom:0.5px solid var(--border);${col}">${disp}</td>`;
+    cols += `<td style="${cellW}padding:3px 0;font-size:11px;border-bottom:0.5px solid var(--border);${col}">${disp}</td>`;
   });
   const tot = g.total || holes.filter(s=>s>0).reduce((a,b)=>a+b,0);
-  cols += `<td style="padding:3px 5px;font-size:11px;font-weight:700;text-align:center;color:var(--green);border-bottom:0.5px solid var(--border);border-left:1px solid var(--border)">${tot}</td>`;
+  cols += `<td style="${totW}${cellW}padding:3px 4px;font-size:11px;font-weight:700;color:var(--green);border-bottom:0.5px solid var(--border);border-left:1px solid var(--border)">${tot}</td>`;
   return `<tr>${cols}</tr>`;
 }).join('');
 
