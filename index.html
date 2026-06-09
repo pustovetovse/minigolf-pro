@@ -269,8 +269,11 @@ input[type=text]:focus{border-color:var(--green)}
 
   <div id="game-play" style="display:none">
     <div style="padding-top:8px;width:100%">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-      <button onclick="confirmExitGame()" style="background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:4px 8px">✕ Выйти из игры</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div id="game-signin-banner" style="display:none">
+        <button onclick="window.signInDuringGame()" style="padding:5px 10px;border-radius:var(--radius-sm);border:1px solid var(--green);background:var(--green-bg);color:var(--green);font-size:12px;cursor:pointer">🔑 Войти и сохранить результат</button>
+      </div>
+      <button onclick="confirmExitGame()" style="background:transparent;border:none;color:var(--text3);font-size:13px;cursor:pointer;padding:4px 8px;margin-left:auto">✕ Выйти из игры</button>
     </div>
     <div class="hole-header">
       <button class="nav-btn2" id="prev-btn" onclick="prevHole()">←</button>
@@ -619,20 +622,28 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     currentUser = user;
     await loadOrCreateProfile(user);
-  }
-  if (!_appShown) {
-    _appShown = true;
-    showApp();
+    if (!_appShown) { _appShown = true; showApp(); }
+  } else {
+    // Не залогинен — показываем экран авторизации (не пропускаем его)
+    if (!_appShown) {
+      _appShown = true;
+      // Проверяем ?user= param — если есть, показываем app как гость
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('user')) {
+        currentUser = null; showApp();
+      } else {
+        showAuthScreen();
+      }
+    }
   }
 });
-// Fallback: if Firebase auth check takes too long and there's a ?user= param,
-// show app after 2s anyway as guest so the profile link still works
+// Fallback на случай медленного Firebase
 setTimeout(() => {
   if (!_appShown) {
     _appShown = true;
-    showApp();
+    showAuthScreen();
   }
-}, 2000);
+}, 3000);
 
 async function loadOrCreateProfile(user) {
   const ref = doc(db, 'users', user.uid);
@@ -695,15 +706,25 @@ function renderGuestList() {
   const list = document.getElementById('guest-players-list');
   if (!list) return;
   const myName = currentUser?.displayName || 'Вы';
-  const myPhoto = currentUser?.photoURL;
+  const myPhoto = currentUser?.customPhoto || currentUser?.photoURL || userProfile?.customPhoto || userProfile?.photo || null;
   const isGuest = !currentUser;
-  let html = `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
-    <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid ${isGuest?'var(--border2)':'var(--green)'}">
-      ${myPhoto ? `<img src="${myPhoto}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>'}
-    </div>
-    <div style="flex:1;font-size:14px;font-weight:500;color:var(--text)">${myName}</div>
-    <div style="font-size:11px;color:${isGuest?'var(--text3)':'var(--green)'};font-weight:500">${isGuest?'без входа':'ты'}</div>
-  </div>`;
+  let html;
+  if (isGuest) {
+    // Гость — показываем поле для ввода имени
+    html = `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+      <div style="width:32px;height:32px;border-radius:50%;background:var(--bg3);border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">👤</div>
+      <input type="text" id="guest-main-name" value="${window._guestMainName||''}" placeholder="Ваше имя" oninput="window._guestMainName=this.value" style="flex:1;padding:6px 10px;font-size:14px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--text);outline:none">
+      <button onclick="window.signInGoogle()" style="padding:5px 8px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:var(--bg2);color:var(--green);font-size:11px;cursor:pointer;white-space:nowrap">Войти G</button>
+    </div>`;
+  } else {
+    html = `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+      <div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--green)">
+        ${myPhoto ? `<img src="${myPhoto}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>'}
+      </div>
+      <div style="flex:1;font-size:14px;font-weight:500;color:var(--text)">${myName}</div>
+      <div style="font-size:11px;color:var(--green);font-weight:500">ты</div>
+    </div>`;
+  }
   guestPlayers.forEach((g, i) => {
     html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
       <div style="width:32px;height:32px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">👤</div>
@@ -724,6 +745,16 @@ window.removeGuest = (i) => {
   guestPlayers.splice(i, 1);
   renderGuestList();
 };
+
+
+function showAuthScreen() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('main-nav').style.display = 'none';
+  ['game','profile','rating','holes','tournament'].forEach(t =>
+    document.getElementById(t+'-screen').classList.remove('active')
+  );
+}
+window.showAuthScreen = showAuthScreen;
 
 function showApp() {
   document.getElementById('auth-screen').style.display = 'none';
@@ -887,8 +918,11 @@ function renderGame() {
   document.getElementById('next-btn').textContent = isLast ? 'Итоги →' : 'Далее →';
   document.getElementById('fwd-btn').textContent = isLast ? '⚑' : '→';
 
-  const name = currentUser ? currentUser.displayName?.split(' ')[0] || 'Я' : 'Гость';
+  const name = currentUser ? currentUser.displayName?.split(' ')[0] || 'Я' : (window._guestMainName || 'Гость');
   document.getElementById('my-score-label').textContent = `${name} — счёт на лунке`;
+  // Показываем кнопку входа если гость
+  const signinBanner = document.getElementById('game-signin-banner');
+  if (signinBanner) signinBanner.style.display = currentUser ? 'none' : 'block';
 
   const dots = document.getElementById('dots');
   dots.innerHTML = Array.from({length:HOLES},(_,i)=>{
@@ -974,7 +1008,37 @@ window.setMyScore = (val) => {
 
 window.goToHole = (i) => { currentHole=i; renderGame(); autosave(); };
 window.prevHole = () => { if(currentHole>0){currentHole--;renderGame();autosave();} };
+
+// ─── SIGN IN DURING GAME ──────────────────────────────
+window.signInDuringGame = async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    currentUser = user;
+    await loadOrCreateProfile(user);
+    // Обновляем имя в счётчике
+    document.getElementById('game-signin-banner').style.display = 'none';
+    renderGame();
+    toast('✅ Вошли как ' + user.displayName?.split(' ')[0] + '. Результат сохранится!');
+  } catch(e) {
+    toast('Ошибка входа');
+    console.error(e);
+  }
+};
+
 window.nextHole = () => {
+  // Проверяем что все игроки заполнили текущую лунку
+  const myFilled = myScores[currentHole] > 0;
+  const unfilledGuests = guestPlayers.filter(g => g.scores[currentHole] === 0).map(g => g.name);
+
+  if (myFilled && unfilledGuests.length > 0) {
+    const names = unfilledGuests.join(', ');
+    if (!confirm(`⚠️ Не заполнено для: ${names}\nПродолжить всё равно?`)) return;
+  } else if (!myFilled && guestPlayers.length > 0) {
+    const myName = currentUser?.displayName?.split(' ')[0] || window._guestMainName || 'Вы';
+    if (!confirm(`⚠️ Вы не заполнили лунку ${currentHole+1}\nПродолжить всё равно?`)) return;
+  }
+
   if(currentHole===HOLES-1){showResults();return;}
   currentHole++; renderGame(); autosave();
 };
@@ -990,7 +1054,7 @@ async function showResults() {
   const recorded = myScores.map(toRecorded);
   // Итого — всегда пересчитывается из лунок (только ненулевые)
   const total = calcTotal(myScores);
-  const name = currentUser?.displayName?.split(' ')[0] || 'Гость';
+  const name = currentUser?.displayName?.split(' ')[0] || window._guestMainName || 'Гость';
 
   const allPlayers = [{name, total, isMe:true}];
   guestPlayers.forEach(g => {
