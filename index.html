@@ -2630,9 +2630,10 @@ window.syncAllToSheets = async () => {
 
     // Собрать строки
     const rows = allGames.map(g => ({
-      date: new Date(g.date).toLocaleString('ru-RU'),
+      date: g.date, // ISO — скрипт сам форматирует
       round: g.round || 1,
       player: names[g.uid] || g.uid,
+      uid: g.uid,   // для дедупликации в скрипте
       total: g.holes.filter(s=>s>0).reduce((a,b)=>a+b,0),
       holes: g.holes
     }));
