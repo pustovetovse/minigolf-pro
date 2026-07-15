@@ -317,6 +317,7 @@ input[type=text]:focus{border-color:var(--green)}
       <button class="btn btn-secondary" onclick="saveToSheets()" style="font-size:14px">📊 Сохранить в Google Sheets</button>
       <div class="sheet-status" id="sheet-status"></div>
     </div>
+    <button class="btn btn-primary" id="resume-fill-btn" onclick="resumeFilling()" style="margin-top:4px;margin-bottom:8px;display:none">← Вернуться к заполнению лунок</button>
     <button class="btn btn-outline" onclick="newGame()" style="margin-top:4px">↺ Новая игра</button>
   </div>
 </div>
@@ -1139,21 +1140,41 @@ async function showResults() {
     });
   }
 
-  // Если моя партия полная — очищаем черновик. Иначе оставляем для продолжения.
+  // Если моя партия полная — очищаем черновик и прячем кнопку возврата.
+  const rfBtn = document.getElementById('resume-fill-btn');
   if (myComplete) {
     clearAutosave();
+    if (rfBtn) rfBtn.style.display = 'none';
   } else {
     autosave(); // сохраняем черновик
-    // Показываем предупреждение прямо в результатах
+    // Удаляем старый баннер если был
+    const oldBanner = document.querySelector('#game-results > div[data-draft-banner]');
+    if (oldBanner) oldBanner.remove();
     const banner = document.createElement('div');
+    banner.setAttribute('data-draft-banner', '1');
     banner.style.cssText = 'background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--red)';
     const emptyCount = myScores.filter(s => s === 0).length;
     banner.innerHTML = `⚠️ Партия не завершена (не заполнено ${emptyCount} лунок).<br>Она <b>не сохранена</b> в рейтинг. Черновик сохранён — вернитесь и заполните все лунки.`;
     const resultsDiv = document.getElementById('game-results');
     const firstCard = resultsDiv.querySelector('.card');
     if (firstCard) resultsDiv.insertBefore(banner, firstCard);
+    if (rfBtn) rfBtn.style.display = 'block';
   }
 }
+
+// Вернуться к заполнению лунок незавершённой партии
+window.resumeFilling = () => {
+  document.getElementById('game-results').style.display = 'none';
+  document.getElementById('game-play').style.display = 'block';
+  // Убираем баннер если он был
+  const banner = document.querySelector('#game-results > div[data-draft-banner]');
+  if (banner) banner.remove();
+  // Переходим на первую незаполненную лунку
+  const firstEmpty = myScores.findIndex(s => s === 0);
+  currentHole = firstEmpty >= 0 ? firstEmpty : 0;
+  renderGame();
+  autosave();
+};
 
 async function saveGameToFirebase(recorded, total, date) {
   try {
