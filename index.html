@@ -502,6 +502,14 @@ function calcTotal(holes) {
   return holes.reduce((a, s) => a + (s > 0 ? toRecorded(s) : 0), 0);
 }
 
+// Партия полная = все 18 лунок заполнены (нет нулей)
+function isCompleteGame(holes) {
+  if (!holes || holes.length < 18) return false;
+  for (let i = 0; i < 18; i++) if (!holes[i] || holes[i] <= 0) return false;
+  return true;
+}
+
+
 function checkBadges(scores, allGames, gameDate) {
   const earned = [];
   const recorded = scores.map(toRecorded);
@@ -1057,7 +1065,8 @@ window.nextHole = () => {
 };
 
 async function showResults() {
-  clearAutosave();
+  // Проверяем полноту партии игрока
+  const myComplete = isCompleteGame(myScores);
   document.getElementById('game-play').style.display='none';
   document.getElementById('game-results').style.display='block';
   const now = new Date();
@@ -1099,43 +1108,50 @@ async function showResults() {
   html += '</tbody></table>';
   document.getElementById('holes-table-wrap').innerHTML = html;
 
-  document.getElementById('save-block').style.display = savePublic ? 'block' : 'none';
   document.getElementById('sheet-status').className = 'sheet-status';
-
-  // Проверяем полноту партии для кнопки Sheets
-  const myEmptyCount = myScores.filter(s => s === 0).length;
-  const anyGuestEmpty = guestPlayers.some(g => g.scores.filter(s => s === 0).length > 0);
-  const isIncomplete = myEmptyCount > 0 || anyGuestEmpty;
-  const sheetBtn = document.querySelector('#save-block button');
-  const sheetStatus = document.getElementById('sheet-status');
-  if (sheetBtn) {
-    if (isIncomplete) {
-      sheetBtn.style.opacity = '0.5';
-      sheetStatus.className = 'sheet-status err';
-      sheetStatus.textContent = '⚠️ Партия не полная — заполните все лунки чтобы сохранить в таблицу';
-      sheetStatus.style.display = 'block';
-    } else {
-      sheetBtn.style.opacity = '1';
-      sheetStatus.style.display = 'none';
-    }
+  // Кнопка Sheets видна только для полной партии
+  const saveBlock = document.getElementById('save-block');
+  if (saveBlock) {
+    saveBlock.style.display = (savePublic && myComplete) ? 'block' : 'none';
   }
 
-  if (currentUser) {
+  // В Firebase пишем ТОЛЬКО полные партии (все 18 лунок заполнены).
+  // Неполные остаются в localStorage (autosave) — их можно продолжить.
+  let anythingSaved = false;
+
+  if (currentUser && myComplete) {
     await saveGameToFirebase(recorded, total, now);
+    anythingSaved = true;
   }
 
-  // Сохраняем гостей в Firebase (guest_<имя>)
+  // Гости — только полные партии
   for (const g of guestPlayers) {
-    if (g.scores.some(s => s > 0)) {
+    if (isCompleteGame(g.scores)) {
       await saveGuestToFirebase(g.name, g.scores, now);
+      anythingSaved = true;
     }
   }
 
-  if (activeTournamentId && currentUser) {
+  if (activeTournamentId && currentUser && myComplete) {
     await updateDoc(doc(db,'tournaments',activeTournamentId),{
       [`finished.${currentUser.uid}`]: true,
       [`totals.${currentUser.uid}`]: total
     });
+  }
+
+  // Если моя партия полная — очищаем черновик. Иначе оставляем для продолжения.
+  if (myComplete) {
+    clearAutosave();
+  } else {
+    autosave(); // сохраняем черновик
+    // Показываем предупреждение прямо в результатах
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:var(--red-bg);border:1px solid var(--red);border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--red)';
+    const emptyCount = myScores.filter(s => s === 0).length;
+    banner.innerHTML = `⚠️ Партия не завершена (не заполнено ${emptyCount} лунок).<br>Она <b>не сохранена</b> в рейтинг. Черновик сохранён — вернитесь и заполните все лунки.`;
+    const resultsDiv = document.getElementById('game-results');
+    const firstCard = resultsDiv.querySelector('.card');
+    if (firstCard) resultsDiv.insertBefore(banner, firstCard);
   }
 }
 
@@ -1694,10 +1710,9 @@ async function loadRating() {
     for (const g of games) {
       if (!g.uid) continue;
       // Суммируем holes напрямую (данные уже recorded, toRecorded не применяем)
-      const realTotal = g.holes && g.holes.length === 18
-        ? g.holes.filter(s => s > 0).reduce((a, b) => a + b, 0)
-        : (typeof g.total === 'number' ? g.total : null);
-      if (realTotal === null) continue;
+      // Только полные партии (все 18 лунок) идут в рейтинг по среднему
+      if (!isCompleteGame(g.holes)) continue;
+      const realTotal = g.holes.filter(s => s > 0).reduce((a, b) => a + b, 0);
       if (!byUser[g.uid]) {
         byUser[g.uid] = { sum: 0, count: 0, best: Infinity };
       }
@@ -1962,7 +1977,7 @@ async function loadTopGames() {
     // Загружаем все партии, сортируем по total asc, берём топ-10
     const snap = await getDocs(query(collection(db,'games'), orderBy('date','asc')));
     const allGames = snap.docs.map(d => d.data())
-      .filter(g => g.holes && g.holes.length === 18 && g.uid);
+      .filter(g => g.uid && isCompleteGame(g.holes));
 
     // Пересчитываем total напрямую
     const withTotal = allGames.map(g => ({
@@ -2036,7 +2051,7 @@ async function loadBestHoleRating() {
     const allSnap = await getDocs(collection(db,'games'));
     const allGames = allSnap.docs
       .map((d, idx) => ({...d.data(), _idx: idx}))
-      .filter(g => g.holes && g.holes.length === 18);
+      .filter(g => isCompleteGame(g.holes));
 
     const uids = [...new Set(allGames.map(g=>g.uid).filter(Boolean))];
     const names = {};
@@ -2108,7 +2123,7 @@ async function loadHolesScreen() {
 
   try {
     const snap = await getDocs(query(collection(db,'games'), limit(200)));
-    const games = snap.docs.map(d=>d.data()).filter(g=>g.holes&&g.holes.length===18);
+    const games = snap.docs.map(d=>d.data()).filter(g=>isCompleteGame(g.holes));
 
     if (games.length === 0) {
       tableView.innerHTML = '<div class="empty"><div class="empty-icon">⛳</div><div class="empty-text">Нет данных</div></div>';
